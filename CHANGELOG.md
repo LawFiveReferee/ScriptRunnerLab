@@ -3,17 +3,21 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 3
+- Build: 4
 - Date: 2026-08-04
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 3
+### Build 4
 
-- Added per-launch checkmarks beside Scripts-folder items that have been run.
+- Reordered the Execution header with Run/Cancel at the leading edge, followed by activity and status, with duration trailing.
 
 ## Build history
+
+### Version 1.0, build 3
+
+- Added per-launch checkmarks beside Scripts-folder items that have been run.
 
 ### Version 1.0, build 2
 

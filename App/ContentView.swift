@@ -203,15 +203,6 @@ struct ContentView: View {
     GroupBox("Execution") {
       VStack(alignment: .leading, spacing: 14) {
         HStack {
-          statusLabel
-          Spacer()
-          if runner.isRunning {
-            ProgressView()
-              .controlSize(.small)
-          }
-          Text(runner.durationText)
-            .monospacedDigit()
-            .foregroundStyle(.secondary)
           Button(
             runner.isRunning ? "Cancel" : "Run",
             systemImage: runner.isRunning ? "stop.fill" : "play.fill"
@@ -221,6 +212,15 @@ struct ContentView: View {
           .buttonStyle(.borderedProminent)
           .tint(runner.isRunning ? .red : .accentColor)
           .disabled(!runner.isRunning && !runner.canRun)
+          if runner.isRunning {
+            ProgressView()
+              .controlSize(.small)
+          }
+          statusLabel
+          Spacer()
+          Text(runner.durationText)
+            .monospacedDigit()
+            .foregroundStyle(.secondary)
         }
 
         Picker("Result format", selection: $resultDisplayMode) {
