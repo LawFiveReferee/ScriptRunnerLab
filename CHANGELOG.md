@@ -3,18 +3,22 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 7
+- Build: 8
 - Date: 2026-08-04
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 7
+### Build 8
+
+- Moved version/build metadata into the native macOS navigation subtitle for small secondary title text.
+
+## Build history
+
+### Version 1.0, build 7
 
 - Removed the duplicate centered toolbar title and combined version/build with the normal window title.
 - Consolidated script and folder selection into one file importer to restore reliable Choose Script presentation.
-
-## Build history
 
 ### Version 1.0, build 6
 

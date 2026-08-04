@@ -23,12 +23,8 @@ struct ContentView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(24)
       }
-      .navigationTitle(
-        Text("Script Runner Lab")
-          + Text("  \(versionBuildText)")
-          .font(.caption2)
-          .foregroundColor(.secondary)
-      )
+      .navigationTitle("Script Runner Lab")
+      .navigationSubtitle(versionBuildText)
       .toolbar {
         ToolbarItemGroup {
           scriptsFolderMenu
