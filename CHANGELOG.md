@@ -3,17 +3,22 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 5
+- Build: 6
 - Date: 2026-08-04
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 5
+### Build 6
 
-- Moved Timeout above Result Format so the format control sits directly above the result display.
+- Added live recursive monitoring of the selected Scripts folder.
+- Added an explicit Refresh Scripts command to the folder menu and its context menu.
 
 ## Build history
+
+### Version 1.0, build 5
+
+- Moved Timeout above Result Format so the format control sits directly above the result display.
 
 ### Version 1.0, build 4
 

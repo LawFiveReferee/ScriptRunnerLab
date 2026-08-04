@@ -1,5 +1,7 @@
 import AppKit
 import CoreServices
+import Darwin
+import Dispatch
 import Foundation
 import Observation
 import ScriptRunnerKit
@@ -21,6 +23,7 @@ final class ScriptRunnerModel {
   private let helperRunner = HelperProcessRunner()
   private var executionTask: Task<Void, Never>?
   private var scriptsFolderAccessURL: URL?
+  private var scriptsFolderMonitors: [DispatchSourceFileSystemObject] = []
 
   init() {
     favorites = Self.loadFavorites()
@@ -138,6 +141,11 @@ final class ScriptRunnerModel {
 
   func hasExecuted(_ entry: ScriptFolderEntry) -> Bool {
     executedScriptPaths.contains(Self.scriptIdentity(for: entry.url))
+  }
+
+  func refreshScriptsFolder() {
+    guard let scriptsFolderURL else { return }
+    scriptsFolderEntries = Self.scriptEntries(in: scriptsFolderURL)
   }
 
   func useBundledCompatibilityTests() {
@@ -397,7 +405,8 @@ final class ScriptRunnerModel {
     }
 
     scriptsFolderURL = url
-    scriptsFolderEntries = Self.scriptEntries(in: url)
+    refreshScriptsFolder()
+    startScriptsFolderMonitoring(at: url)
 
     if persist {
       let bookmark = try url.bookmarkData(
@@ -450,6 +459,60 @@ final class ScriptRunnerModel {
 
   private static func isScriptURL(_ url: URL) -> Bool {
     ["applescript", "scpt", "scptd", "app"].contains(url.pathExtension.lowercased())
+  }
+
+  private func startScriptsFolderMonitoring(at folderURL: URL) {
+    scriptsFolderMonitors.forEach { $0.cancel() }
+    scriptsFolderMonitors.removeAll()
+
+    for directoryURL in Self.directoriesToMonitor(in: folderURL) {
+      let descriptor = open(directoryURL.path, O_EVTONLY)
+      guard descriptor >= 0 else { continue }
+
+      let source = DispatchSource.makeFileSystemObjectSource(
+        fileDescriptor: descriptor,
+        eventMask: [.write, .extend, .attrib, .link, .rename, .delete, .revoke],
+        queue: .main
+      )
+      source.setEventHandler { [weak self] in
+        Task { @MainActor [weak self] in
+          guard let self, self.scriptsFolderURL?.standardizedFileURL == folderURL.standardizedFileURL else {
+            return
+          }
+          self.refreshScriptsFolder()
+          self.startScriptsFolderMonitoring(at: folderURL)
+        }
+      }
+      source.setCancelHandler {
+        close(descriptor)
+      }
+      source.resume()
+      scriptsFolderMonitors.append(source)
+    }
+  }
+
+  private static func directoriesToMonitor(in folderURL: URL) -> [URL] {
+    let resourceKeys: [URLResourceKey] = [.isDirectoryKey]
+    guard let enumerator = FileManager.default.enumerator(
+      at: folderURL,
+      includingPropertiesForKeys: resourceKeys,
+      options: [.skipsHiddenFiles]
+    ) else {
+      return [folderURL]
+    }
+
+    var directories = [folderURL]
+    while let url = enumerator.nextObject() as? URL {
+      let fileExtension = url.pathExtension.lowercased()
+      if fileExtension == "scptd" || fileExtension == "app" {
+        enumerator.skipDescendants()
+        continue
+      }
+      if (try? url.resourceValues(forKeys: Set(resourceKeys)).isDirectory) == true {
+        directories.append(url)
+      }
+    }
+    return directories
   }
 
   private static func scriptIdentity(for url: URL) -> String {

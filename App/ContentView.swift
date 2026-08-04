@@ -124,6 +124,9 @@ struct ContentView: View {
       }
 
       Divider()
+      Button("Refresh Scripts", systemImage: "arrow.clockwise") {
+        runner.refreshScriptsFolder()
+      }
       Button("Choose Scripts Folder…", systemImage: "folder.badge.plus") {
         isChoosingScriptsFolder = true
       }
@@ -137,6 +140,9 @@ struct ContentView: View {
     .help("Scripts in \(runner.scriptsFolderDisplayName)")
     .accessibilityLabel("Scripts folder: \(runner.scriptsFolderDisplayName)")
     .contextMenu {
+      Button("Refresh Scripts", systemImage: "arrow.clockwise") {
+        runner.refreshScriptsFolder()
+      }
       Button("Choose Scripts Folder…", systemImage: "folder.badge.plus") {
         isChoosingScriptsFolder = true
       }
