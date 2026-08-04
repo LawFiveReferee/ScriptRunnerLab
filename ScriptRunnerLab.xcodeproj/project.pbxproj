@@ -8,38 +8,98 @@
 
 /* Begin PBXBuildFile section */
 		0438CB241887181BECA262AB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9664B56C0A1C2B1F196A0B15 /* Assets.xcassets */; };
+		10206C16DD681B5A8E7FE82B /* ScriptRunnerLabHelper.app in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 35EA2D0810EAD34EAC0900A4 /* ScriptRunnerLabHelper.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		18381E785784C11F4EDFE3A1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7A7D99BAE4E6A1FAC18C47 /* ContentView.swift */; };
-		2ECF11E127A921C385AAF76A /* ScriptDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C385E93B392A211962095FF /* ScriptDescriptor.swift */; };
+		21F99F1F1BE516EA48BF0537 /* ScriptCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B8A2B331001533CE2253A4 /* ScriptCapability.swift */; };
 		4B5882D7CE9B36CC6F83959B /* ScriptExecutionStatus+View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E40851872F8043D76B08A25 /* ScriptExecutionStatus+View.swift */; };
-		98850DEFA8FBF4638DF2C0F3 /* ScriptExecutionResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AD25DF1546DD2159889B1B /* ScriptExecutionResult.swift */; };
-		B24D16EA4C19DF3A46188D39 /* OSAKitRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78FA53D469D34150D235A857 /* OSAKitRunner.swift */; };
+		4C6334100253168984362246 /* ExecutionTimeout.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBE21D04B32A3E630493A41D /* ExecutionTimeout.swift */; };
+		56707130C28292685C324CE8 /* FavoriteScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF4E1F946347F7F3AFC0111 /* FavoriteScript.swift */; };
+		7B86FBDBC2C13009542DD7FE /* HelperProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BB98BE1F79203E34E06E636 /* HelperProcessRunner.swift */; };
+		887A8C0A521342EAA554A6D6 /* ResultDisplayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA163970E14E4A624C227159 /* ResultDisplayMode.swift */; };
+		8C68FD1244CD0709C967CF48 /* ScriptRunnerHelperMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F1D0E9C86CC4A2064F1A2E /* ScriptRunnerHelperMain.swift */; };
+		ADBF49974545A76BECCC0A1B /* ScriptRunnerKit in Frameworks */ = {isa = PBXBuildFile; productRef = 599D69C9166FBAAA84D4B70E /* ScriptRunnerKit */; };
+		D294291E7A443CC463A87840 /* ScriptRunnerKit in Frameworks */ = {isa = PBXBuildFile; productRef = BF48A79C10198CEC6172A061 /* ScriptRunnerKit */; };
 		D6BEB20FEC93477D8437C5ED /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = C14E697A9096430638B55B0E /* App.swift */; };
 		E3912497A81018AF5545EE74 /* ScriptRunnerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91515B6EE107BEFF844756D /* ScriptRunnerModel.swift */; };
-		A1F42C7D9E3B4051836A7201 /* FavoriteScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F42C7D9E3B4051836A7202 /* FavoriteScript.swift */; };
-		A1F42C7D9E3B4051836A7203 /* ResultDisplayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F42C7D9E3B4051836A7204 /* ResultDisplayMode.swift */; };
-		A1F42C7D9E3B4051836A7205 /* ScriptCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F42C7D9E3B4051836A7206 /* ScriptCapability.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		FE60437A48A2586DC2246763 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 623B72496C9862FD351FACB8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5305F8232F127974CD351BC3;
+			remoteInfo = ScriptRunnerLabHelper;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F4AECD9B82692C43E8A49C55 /* Embed Dependencies */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Helpers;
+			dstSubfolderSpec = 1;
+			files = (
+				10206C16DD681B5A8E7FE82B /* ScriptRunnerLabHelper.app in Embed Dependencies */,
+			);
+			name = "Embed Dependencies";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		16AD25DF1546DD2159889B1B /* ScriptExecutionResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptExecutionResult.swift; sourceTree = "<group>"; };
+		1C4F1EFED1B8439F5BF6C410 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		35EA2D0810EAD34EAC0900A4 /* ScriptRunnerLabHelper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScriptRunnerLabHelper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E40851872F8043D76B08A25 /* ScriptExecutionStatus+View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ScriptExecutionStatus+View.swift"; sourceTree = "<group>"; };
-		5C385E93B392A211962095FF /* ScriptDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptDescriptor.swift; sourceTree = "<group>"; };
-		78FA53D469D34150D235A857 /* OSAKitRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSAKitRunner.swift; sourceTree = "<group>"; };
+		4EF4E1F946347F7F3AFC0111 /* FavoriteScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteScript.swift; sourceTree = "<group>"; };
+		59A72D43105B7B429571C920 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		7BB98BE1F79203E34E06E636 /* HelperProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperProcessRunner.swift; sourceTree = "<group>"; };
+		7BC991C8ACD03D67F9AE2A08 /* ScriptRunnerKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ScriptRunnerKit; path = Packages/ScriptRunnerKit; sourceTree = SOURCE_ROOT; };
+		82B8A2B331001533CE2253A4 /* ScriptCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptCapability.swift; sourceTree = "<group>"; };
 		9664B56C0A1C2B1F196A0B15 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A6F1D0E9C86CC4A2064F1A2E /* ScriptRunnerHelperMain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptRunnerHelperMain.swift; sourceTree = "<group>"; };
 		B91515B6EE107BEFF844756D /* ScriptRunnerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptRunnerModel.swift; sourceTree = "<group>"; };
+		BA163970E14E4A624C227159 /* ResultDisplayMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultDisplayMode.swift; sourceTree = "<group>"; };
 		C14E697A9096430638B55B0E /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		CD4D4DED73C1163796B6EABA /* ScriptRunnerLab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScriptRunnerLab.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB7A7D99BAE4E6A1FAC18C47 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		A1F42C7D9E3B4051836A7202 /* FavoriteScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteScript.swift; sourceTree = "<group>"; };
-		A1F42C7D9E3B4051836A7204 /* ResultDisplayMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultDisplayMode.swift; sourceTree = "<group>"; };
-		A1F42C7D9E3B4051836A7206 /* ScriptCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptCapability.swift; sourceTree = "<group>"; };
+		DBE21D04B32A3E630493A41D /* ExecutionTimeout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExecutionTimeout.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		BD1187B31833FFBD07AF5DD2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D294291E7A443CC463A87840 /* ScriptRunnerKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F39FB4C0D32A7A28AF15DDC6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ADBF49974545A76BECCC0A1B /* ScriptRunnerKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
+		1786E8E4DC3D9548BC47FEFD /* Helper */ = {
+			isa = PBXGroup;
+			children = (
+				1C4F1EFED1B8439F5BF6C410 /* Info.plist */,
+				A6F1D0E9C86CC4A2064F1A2E /* ScriptRunnerHelperMain.swift */,
+			);
+			path = Helper;
+			sourceTree = "<group>";
+		};
 		24CEAC5E4604A4C669D6CE5F /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				CD4D4DED73C1163796B6EABA /* ScriptRunnerLab.app */,
+				35EA2D0810EAD34EAC0900A4 /* ScriptRunnerLabHelper.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -50,12 +110,12 @@
 				C14E697A9096430638B55B0E /* App.swift */,
 				9664B56C0A1C2B1F196A0B15 /* Assets.xcassets */,
 				DB7A7D99BAE4E6A1FAC18C47 /* ContentView.swift */,
-				A1F42C7D9E3B4051836A7202 /* FavoriteScript.swift */,
-				78FA53D469D34150D235A857 /* OSAKitRunner.swift */,
-				A1F42C7D9E3B4051836A7204 /* ResultDisplayMode.swift */,
-				5C385E93B392A211962095FF /* ScriptDescriptor.swift */,
-				A1F42C7D9E3B4051836A7206 /* ScriptCapability.swift */,
-				16AD25DF1546DD2159889B1B /* ScriptExecutionResult.swift */,
+				DBE21D04B32A3E630493A41D /* ExecutionTimeout.swift */,
+				4EF4E1F946347F7F3AFC0111 /* FavoriteScript.swift */,
+				7BB98BE1F79203E34E06E636 /* HelperProcessRunner.swift */,
+				59A72D43105B7B429571C920 /* Info.plist */,
+				BA163970E14E4A624C227159 /* ResultDisplayMode.swift */,
+				82B8A2B331001533CE2253A4 /* ScriptCapability.swift */,
 				4E40851872F8043D76B08A25 /* ScriptExecutionStatus+View.swift */,
 				B91515B6EE107BEFF844756D /* ScriptRunnerModel.swift */,
 			);
@@ -66,26 +126,59 @@
 			isa = PBXGroup;
 			children = (
 				507388474EA53CD97E1B8076 /* App */,
+				1786E8E4DC3D9548BC47FEFD /* Helper */,
+				89BB753A02D3C0E3CCDFA9B4 /* Packages */,
 				24CEAC5E4604A4C669D6CE5F /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		89BB753A02D3C0E3CCDFA9B4 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				7BC991C8ACD03D67F9AE2A08 /* ScriptRunnerKit */,
+			);
+			path = Packages;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		5305F8232F127974CD351BC3 /* ScriptRunnerLabHelper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 07FA72AAD2C8B05ECA2CE424 /* Build configuration list for PBXNativeTarget "ScriptRunnerLabHelper" */;
+			buildPhases = (
+				7E3FFDFEFD5C0C9EEC8AACD9 /* Sources */,
+				F39FB4C0D32A7A28AF15DDC6 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ScriptRunnerLabHelper;
+			packageProductDependencies = (
+				599D69C9166FBAAA84D4B70E /* ScriptRunnerKit */,
+			);
+			productName = ScriptRunnerLabHelper;
+			productReference = 35EA2D0810EAD34EAC0900A4 /* ScriptRunnerLabHelper.app */;
+			productType = "com.apple.product-type.application";
+		};
 		99523F440D68777127055D8D /* ScriptRunnerLab */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D7D8DA8CE4AD6C817761E8CC /* Build configuration list for PBXNativeTarget "ScriptRunnerLab" */;
 			buildPhases = (
 				732DCB81FFE8840A0F1CCFF8 /* Sources */,
 				3291B76C1EA31108F465BD1D /* Resources */,
+				BD1187B31833FFBD07AF5DD2 /* Frameworks */,
+				F4AECD9B82692C43E8A49C55 /* Embed Dependencies */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				4980FCDE15DA4F5C0475EB96 /* PBXTargetDependency */,
 			);
 			name = ScriptRunnerLab;
 			packageProductDependencies = (
+				BF48A79C10198CEC6172A061 /* ScriptRunnerKit */,
 			);
 			productName = ScriptRunnerLab;
 			productReference = CD4D4DED73C1163796B6EABA /* ScriptRunnerLab.app */;
@@ -111,12 +204,16 @@
 			);
 			mainGroup = 833DCEE2B442081738CDBE9A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				29B8F786F0A43EAC6055E03B /* XCLocalSwiftPackageReference "Packages/ScriptRunnerKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 24CEAC5E4604A4C669D6CE5F /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				99523F440D68777127055D8D /* ScriptRunnerLab */,
+				5305F8232F127974CD351BC3 /* ScriptRunnerLabHelper */,
 			);
 		};
 /* End PBXProject section */
@@ -139,26 +236,60 @@
 			files = (
 				D6BEB20FEC93477D8437C5ED /* App.swift in Sources */,
 				18381E785784C11F4EDFE3A1 /* ContentView.swift in Sources */,
-				B24D16EA4C19DF3A46188D39 /* OSAKitRunner.swift in Sources */,
-				2ECF11E127A921C385AAF76A /* ScriptDescriptor.swift in Sources */,
-				98850DEFA8FBF4638DF2C0F3 /* ScriptExecutionResult.swift in Sources */,
+				4C6334100253168984362246 /* ExecutionTimeout.swift in Sources */,
+				56707130C28292685C324CE8 /* FavoriteScript.swift in Sources */,
+				7B86FBDBC2C13009542DD7FE /* HelperProcessRunner.swift in Sources */,
+				887A8C0A521342EAA554A6D6 /* ResultDisplayMode.swift in Sources */,
+				21F99F1F1BE516EA48BF0537 /* ScriptCapability.swift in Sources */,
 				4B5882D7CE9B36CC6F83959B /* ScriptExecutionStatus+View.swift in Sources */,
 				E3912497A81018AF5545EE74 /* ScriptRunnerModel.swift in Sources */,
-				A1F42C7D9E3B4051836A7201 /* FavoriteScript.swift in Sources */,
-				A1F42C7D9E3B4051836A7203 /* ResultDisplayMode.swift in Sources */,
-				A1F42C7D9E3B4051836A7205 /* ScriptCapability.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E3FFDFEFD5C0C9EEC8AACD9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8C68FD1244CD0709C967CF48 /* ScriptRunnerHelperMain.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		4980FCDE15DA4F5C0475EB96 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5305F8232F127974CD351BC3 /* ScriptRunnerLabHelper */;
+			targetProxy = FE60437A48A2586DC2246763 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		A5B14DBF9A96890C694FCD02 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Helper/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.scriptrunnerlab.helper;
+				PRODUCT_NAME = ScriptRunnerHelper;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		B21D26AA56E8B9D9AA6A5611 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = App/Info.plist;
@@ -174,12 +305,31 @@
 			};
 			name = Debug;
 		};
+		B2FC5693AC5F6A249CCB0540 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Helper/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.scriptrunnerlab.helper;
+				PRODUCT_NAME = ScriptRunnerHelper;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
 		C15B742A0A6F232F123C3A5B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = App/Info.plist;
@@ -319,6 +469,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		07FA72AAD2C8B05ECA2CE424 /* Build configuration list for PBXNativeTarget "ScriptRunnerLabHelper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B2FC5693AC5F6A249CCB0540 /* Debug */,
+				A5B14DBF9A96890C694FCD02 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		8510E7EF9823674DEE489AD0 /* Build configuration list for PBXProject "ScriptRunnerLab" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -338,6 +497,24 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		29B8F786F0A43EAC6055E03B /* XCLocalSwiftPackageReference "Packages/ScriptRunnerKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/ScriptRunnerKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		599D69C9166FBAAA84D4B70E /* ScriptRunnerKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ScriptRunnerKit;
+		};
+		BF48A79C10198CEC6172A061 /* ScriptRunnerKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ScriptRunnerKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 623B72496C9862FD351FACB8 /* Project object */;
 }

@@ -6,7 +6,10 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 
 - Loads original `.applescript`, `.scpt`, and `.scptd` files with OSAKit
 - Preserves the original file URL and script-bundle context
-- Runs in a Cocoa application with AppKit and a main run loop
+- Runs each request in a separately signed, agent-style Cocoa helper
+- Uses one helper process per request for crash and state isolation
+- Supports cancellation and configurable timeouts by terminating only the helper
+- Shares Codable request/result models and OSAKit execution through `ScriptRunnerKit`
 - Reports structured AppleScript errors, source ranges, raw results, duration, UTI, and architecture
 - Displays results as AE Print or AppleScript source
 - Opens scripts in the user's default editor
@@ -21,7 +24,7 @@ The app is intentionally not sandboxed. macOS privacy controls still apply, so s
 
 ## Next milestone
 
-Move execution into a separately signed, agent-style Cocoa helper. The host will send one structured request per helper process, allowing cancellation and timeouts by terminating only that helper. The shared models and OSAKit execution code will then move into `ScriptRunnerKit`.
+Add AppleScript applet execution and begin the automated compatibility test suite, including timeout, cancellation, permissions, bundled resources, AppleScriptObjC, and installed libraries.
 
 ## Scope
 

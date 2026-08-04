@@ -1,3 +1,4 @@
+import ScriptRunnerKit
 import SwiftUI
 
 extension ScriptExecutionStatus {
@@ -7,6 +8,8 @@ extension ScriptExecutionStatus {
     case .running: "play.fill"
     case .completed: "checkmark.circle.fill"
     case .failed: "exclamationmark.triangle.fill"
+    case .cancelled: "stop.fill"
+    case .timedOut: "clock.badge.exclamationmark.fill"
     }
   }
 
@@ -16,6 +19,8 @@ extension ScriptExecutionStatus {
     case .running: .accentColor
     case .completed: .green
     case .failed: .red
+    case .cancelled: .orange
+    case .timedOut: .orange
     }
   }
 }

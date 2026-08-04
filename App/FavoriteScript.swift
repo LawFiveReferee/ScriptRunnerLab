@@ -1,4 +1,5 @@
 import Foundation
+import ScriptRunnerKit
 
 struct FavoriteScript: Codable, Identifiable, Sendable {
   var id: UUID

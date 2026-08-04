@@ -1,5 +1,6 @@
 import Foundation
 import OSAKit
+import ScriptRunnerKit
 
 struct ScriptCapability: Codable, Hashable, Identifiable, Sendable {
   enum Kind: String, Codable, Sendable {

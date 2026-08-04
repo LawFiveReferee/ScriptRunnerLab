@@ -5,6 +5,7 @@ struct ContentView: View {
   @State private var runner = ScriptRunnerModel()
   @State private var isChoosingScript = false
   @AppStorage("resultDisplayMode") private var resultDisplayMode = ResultDisplayMode.aePrint
+  @AppStorage("executionTimeout") private var executionTimeout = ExecutionTimeout.thirtySeconds
 
   var body: some View {
     NavigationStack {
@@ -25,10 +26,18 @@ struct ContentView: View {
           Button("Choose Script", systemImage: "doc.badge.plus") {
             isChoosingScript = true
           }
-          Button("Run", systemImage: "play.fill") {
-            runner.run()
+          .disabled(runner.isRunning)
+          Button(
+            runner.isRunning ? "Cancel" : "Run",
+            systemImage: runner.isRunning ? "stop.fill" : "play.fill"
+          ) {
+            if runner.isRunning {
+              runner.cancel()
+            } else {
+              runner.run(timeout: executionTimeout.seconds)
+            }
           }
-          .disabled(!runner.canRun)
+          .disabled(!runner.isRunning && !runner.canRun)
         }
       }
       .fileImporter(
@@ -117,6 +126,14 @@ struct ContentView: View {
         .pickerStyle(.segmented)
         .frame(maxWidth: 260)
 
+        Picker("Timeout", selection: $executionTimeout) {
+          ForEach(ExecutionTimeout.allCases) { timeout in
+            Text(timeout.displayName).tag(timeout)
+          }
+        }
+        .pickerStyle(.menu)
+        .disabled(runner.isRunning)
+
         TextEditor(text: .constant(runner.outputText(for: resultDisplayMode)))
           .font(.system(.body, design: .monospaced))
           .scrollContentBackground(.hidden)
@@ -127,7 +144,7 @@ struct ContentView: View {
 
         HStack {
           Button("Run Again", systemImage: "arrow.clockwise") {
-            runner.run()
+            runner.run(timeout: executionTimeout.seconds)
           }
           .disabled(!runner.canRun)
           Button("Copy Result", systemImage: "document.on.document") {
@@ -194,6 +211,7 @@ struct ContentView: View {
               }
               .buttonStyle(.plain)
               .accessibilityLabel("Select favorite \(favorite.displayName)")
+              .disabled(runner.isRunning)
 
               Button("Remove \(favorite.displayName)", systemImage: "trash") {
                 runner.removeFavorite(id: favorite.id)

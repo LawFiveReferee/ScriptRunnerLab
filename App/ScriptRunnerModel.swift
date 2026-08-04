@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import Observation
+import ScriptRunnerKit
 
 @MainActor
 @Observable
@@ -12,6 +13,8 @@ final class ScriptRunnerModel {
   var favorites: [FavoriteScript]
 
   private static let favoritesKey = "favoriteScripts"
+  private let helperRunner = HelperProcessRunner()
+  private var executionTask: Task<Void, Never>?
 
   init() {
     favorites = Self.loadFavorites()
@@ -69,6 +72,7 @@ final class ScriptRunnerModel {
   var diagnosticsText: String {
     var lines = [
       "Engine: OSAKit",
+      "Isolation: ScriptRunnerHelper (one process per request)",
       "Sandbox: disabled",
       "macOS: \(ProcessInfo.processInfo.operatingSystemVersionString)",
       "Architecture: \(architectureName)"
@@ -141,11 +145,8 @@ final class ScriptRunnerModel {
     saveFavorites()
   }
 
-  func run() {
+  func run(timeout: TimeInterval) {
     guard let descriptor, canRun else { return }
-    isRunning = true
-    status = .running
-
     let accessed = descriptor.url.startAccessingSecurityScopedResource()
     defer {
       if accessed {
@@ -153,9 +154,57 @@ final class ScriptRunnerModel {
       }
     }
 
-    result = OSAKitRunner().execute(url: descriptor.url)
-    status = result?.status ?? .failed
-    isRunning = false
+    let request: ScriptExecutionRequest
+    do {
+      request = try ScriptExecutionRequest(scriptURL: descriptor.url)
+    } catch {
+      showLocalError("The script could not be prepared for the helper. \(error.localizedDescription)")
+      return
+    }
+
+    isRunning = true
+    status = .running
+    result = nil
+    let startedAt = Date()
+
+    executionTask = Task { [weak self] in
+      guard let self else { return }
+      do {
+        let executionResult = try await helperRunner.execute(request: request, timeout: timeout)
+        result = executionResult
+        status = executionResult.status
+        isRunning = false
+      } catch let error as HelperProcessError {
+        let failureStatus: ScriptExecutionStatus
+        switch error {
+        case .cancelled:
+          failureStatus = .cancelled
+        case .timedOut:
+          failureStatus = .timedOut
+        default:
+          failureStatus = .failed
+        }
+        showLocalError(
+          error.localizedDescription,
+          status: failureStatus,
+          requestID: request.requestID,
+          startedAt: startedAt
+        )
+      } catch {
+        showLocalError(
+          error.localizedDescription,
+          requestID: request.requestID,
+          startedAt: startedAt
+        )
+      }
+      executionTask = nil
+    }
+  }
+
+  func cancel() {
+    guard isRunning else { return }
+    executionTask?.cancel()
+    helperRunner.cancel()
   }
 
   func revealScript() {
@@ -188,22 +237,20 @@ final class ScriptRunnerModel {
     #endif
   }
 
-  private func showLocalError(_ message: String) {
-    let now = Date()
-    result = ScriptExecutionResult(
-      requestID: UUID(),
-      status: .failed,
-      sourceResultDescription: nil,
-      rawResultDescription: nil,
-      errorNumber: nil,
-      errorMessage: message,
-      errorBriefMessage: nil,
-      errorRange: nil,
-      executionDuration: 0,
-      startedAt: now,
-      completedAt: now
+  private func showLocalError(
+    _ message: String,
+    status: ScriptExecutionStatus = .failed,
+    requestID: UUID = UUID(),
+    startedAt: Date = Date()
+  ) {
+    result = .failure(
+      requestID: requestID,
+      status: status,
+      message: message,
+      startedAt: startedAt
     )
-    status = .failed
+    self.status = status
+    isRunning = false
   }
 
   private func addSelectedScriptToFavorites() {

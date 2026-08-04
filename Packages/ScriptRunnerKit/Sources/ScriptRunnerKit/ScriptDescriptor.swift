@@ -1,15 +1,15 @@
 import Foundation
 
-struct ScriptDescriptor: Sendable {
-  var url: URL
-  var displayName: String
-  var fileExtension: String
-  var typeIdentifier: String?
-  var scriptType: ScriptType
-  var isPackage: Bool
-  var isCompiled: Bool
+public struct ScriptDescriptor: Sendable {
+  public var url: URL
+  public var displayName: String
+  public var fileExtension: String
+  public var typeIdentifier: String?
+  public var scriptType: ScriptType
+  public var isPackage: Bool
+  public var isCompiled: Bool
 
-  init(url: URL) {
+  public init(url: URL) {
     let resourceValues = try? url.resourceValues(forKeys: [.contentTypeKey, .isPackageKey])
     let fileExtension = url.pathExtension.lowercased()
 
@@ -23,13 +23,13 @@ struct ScriptDescriptor: Sendable {
   }
 }
 
-enum ScriptType: String, Codable, Hashable, Sendable {
+public enum ScriptType: String, Codable, Hashable, Sendable {
   case sourceAppleScript
   case compiledAppleScript
   case scriptBundle
   case unsupported
 
-  init(fileExtension: String, isPackage: Bool) {
+  public init(fileExtension: String, isPackage: Bool) {
     switch fileExtension {
     case "applescript":
       self = .sourceAppleScript
@@ -42,7 +42,7 @@ enum ScriptType: String, Codable, Hashable, Sendable {
     }
   }
 
-  var displayName: String {
+  public var displayName: String {
     switch self {
     case .sourceAppleScript: "AppleScript source"
     case .compiledAppleScript: "Compiled AppleScript"

@@ -1,10 +1,31 @@
 import Foundation
 import OSAKit
 
-struct OSAKitRunner {
-  func execute(url: URL) -> ScriptExecutionResult {
-    let requestID = UUID()
+public struct OSAKitRunner {
+  public init() {}
+
+  public func execute(request: ScriptExecutionRequest) -> ScriptExecutionResult {
     let startedAt = Date()
+
+    do {
+      let url = try request.resolveScriptURL()
+      let accessed = url.startAccessingSecurityScopedResource()
+      defer {
+        if accessed {
+          url.stopAccessingSecurityScopedResource()
+        }
+      }
+      return execute(url: url, requestID: request.requestID, startedAt: startedAt)
+    } catch {
+      return .failure(
+        requestID: request.requestID,
+        message: "The helper could not access the selected script. \(error.localizedDescription)",
+        startedAt: startedAt
+      )
+    }
+  }
+
+  public func execute(url: URL, requestID: UUID = UUID(), startedAt: Date = Date()) -> ScriptExecutionResult {
     var loadError: NSDictionary?
 
     guard let script = OSAScript(contentsOf: url, error: &loadError) else {
@@ -52,7 +73,8 @@ struct OSAKitRunner {
     error: NSDictionary?,
     fallbackMessage: String
   ) -> ScriptExecutionResult {
-    ScriptExecutionResult(
+    let range = (error?[OSAScriptErrorRange] as? NSValue)?.rangeValue
+    return ScriptExecutionResult(
       requestID: requestID,
       status: .failed,
       sourceResultDescription: nil,
@@ -60,7 +82,7 @@ struct OSAKitRunner {
       errorNumber: (error?[OSAScriptErrorNumber] as? NSNumber)?.intValue,
       errorMessage: error?[OSAScriptErrorMessage] as? String ?? fallbackMessage,
       errorBriefMessage: error?[OSAScriptErrorBriefMessage] as? String,
-      errorRange: (error?[OSAScriptErrorRange] as? NSValue)?.rangeValue,
+      errorRange: range.map { ScriptSourceRange(location: $0.location, length: $0.length) },
       executionDuration: completedAt.timeIntervalSince(startedAt),
       startedAt: startedAt,
       completedAt: completedAt
