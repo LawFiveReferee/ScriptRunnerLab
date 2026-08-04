@@ -4,12 +4,14 @@ import UniformTypeIdentifiers
 struct ContentView: View {
   @State private var runner = ScriptRunnerModel()
   @State private var isChoosingScript = false
+  @AppStorage("resultDisplayMode") private var resultDisplayMode = ResultDisplayMode.aePrint
 
   var body: some View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 20) {
           header
+          favoritesCard
           scriptCard
           executionCard
           diagnosticsCard
@@ -59,11 +61,23 @@ struct ContentView: View {
           detailRow("Package", descriptor.isPackage ? "Yes" : "No")
 
           HStack {
+            Toggle(
+              isOn: Binding(
+                get: { runner.isSelectedScriptFavorite },
+                set: { runner.setSelectedScriptFavorite($0) }
+              )
+            ) {
+              Label(
+                runner.isSelectedScriptFavorite ? "Remove from Favorites" : "Add to Favorites",
+                systemImage: runner.isSelectedScriptFavorite ? "star.fill" : "star"
+              )
+            }
+            .toggleStyle(.button)
             Button("Reveal in Finder", systemImage: "folder") {
               runner.revealScript()
             }
-            Button("Open in Script Editor", systemImage: "pencil.and.scribble") {
-              runner.openInScriptEditor()
+            Button("Open in \(runner.defaultEditorName)", systemImage: "pencil.and.scribble") {
+              runner.openInDefaultEditor()
             }
           }
         }
@@ -95,7 +109,15 @@ struct ContentView: View {
             .foregroundStyle(.secondary)
         }
 
-        TextEditor(text: .constant(runner.outputText))
+        Picker("Result format", selection: $resultDisplayMode) {
+          ForEach(ResultDisplayMode.allCases) { mode in
+            Text(mode.displayName).tag(mode)
+          }
+        }
+        .pickerStyle(.segmented)
+        .frame(maxWidth: 260)
+
+        TextEditor(text: .constant(runner.outputText(for: resultDisplayMode)))
           .font(.system(.body, design: .monospaced))
           .scrollContentBackground(.hidden)
           .padding(10)
@@ -109,7 +131,7 @@ struct ContentView: View {
           }
           .disabled(!runner.canRun)
           Button("Copy Result", systemImage: "document.on.document") {
-            runner.copyResult()
+            runner.copyResult(mode: resultDisplayMode)
           }
           .disabled(runner.result == nil)
           Button("Clear", systemImage: "xmark") {
@@ -133,6 +155,65 @@ struct ContentView: View {
     }
   }
 
+  private var favoritesCard: some View {
+    GroupBox("Favorites Collection") {
+      if runner.favorites.isEmpty {
+        ContentUnavailableView(
+          "No Favorite Scripts",
+          systemImage: "star",
+          description: Text("Select a script and add it to Favorites to keep it ready for compatibility testing.")
+        )
+        .frame(maxWidth: .infinity, minHeight: 120)
+      } else {
+        VStack(spacing: 0) {
+          ForEach(Array(runner.favorites.enumerated()), id: \.element.id) { index, favorite in
+            HStack(spacing: 12) {
+              Button {
+                runner.selectFavorite(id: favorite.id)
+              } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                  HStack {
+                    Image(systemName: runner.selectedFavoriteID == favorite.id ? "star.fill" : "doc.text")
+                      .foregroundStyle(runner.selectedFavoriteID == favorite.id ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
+                    Text(favorite.displayName)
+                      .font(.headline)
+                    Text(favorite.fileExtension.isEmpty ? "Unknown" : ".\(favorite.fileExtension)")
+                      .font(.caption.monospaced())
+                      .foregroundStyle(.secondary)
+                  }
+                  Text(favorite.scriptType.displayName)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                  Text(capabilitySummary(for: favorite))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+              }
+              .buttonStyle(.plain)
+              .accessibilityLabel("Select favorite \(favorite.displayName)")
+
+              Button("Remove \(favorite.displayName)", systemImage: "trash") {
+                runner.removeFavorite(id: favorite.id)
+              }
+              .labelStyle(.iconOnly)
+              .buttonStyle(.borderless)
+            }
+            .padding(.vertical, 10)
+
+            if index < runner.favorites.count - 1 {
+              Divider()
+            }
+          }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 4)
+      }
+    }
+  }
+
   private var statusLabel: some View {
     Label(runner.status.displayName, systemImage: runner.status.symbolName)
       .foregroundStyle(runner.status.color)
@@ -145,5 +226,10 @@ struct ContentView: View {
         .lineLimit(2)
         .textSelection(.enabled)
     }
+  }
+
+  private func capabilitySummary(for favorite: FavoriteScript) -> String {
+    guard !favorite.capabilities.isEmpty else { return "No specific capabilities detected in available source" }
+    return favorite.capabilities.map(\.displayName).joined(separator: " • ")
   }
 }

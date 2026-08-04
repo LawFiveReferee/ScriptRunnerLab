@@ -3,7 +3,7 @@ import Foundation
 struct ScriptExecutionResult: Sendable {
   var requestID: UUID
   var status: ScriptExecutionStatus
-  var resultDescription: String?
+  var sourceResultDescription: String?
   var rawResultDescription: String?
   var errorNumber: Int?
   var errorMessage: String?

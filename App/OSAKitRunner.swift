@@ -33,7 +33,7 @@ struct OSAKitRunner {
     return ScriptExecutionResult(
       requestID: requestID,
       status: .completed,
-      resultDescription: descriptor?.stringValue ?? descriptor?.description,
+      sourceResultDescription: descriptor.flatMap { script.richText(from: $0)?.string },
       rawResultDescription: descriptor?.description,
       errorNumber: nil,
       errorMessage: nil,
@@ -55,7 +55,7 @@ struct OSAKitRunner {
     ScriptExecutionResult(
       requestID: requestID,
       status: .failed,
-      resultDescription: nil,
+      sourceResultDescription: nil,
       rawResultDescription: nil,
       errorNumber: (error?[OSAScriptErrorNumber] as? NSNumber)?.intValue,
       errorMessage: error?[OSAScriptErrorMessage] as? String ?? fallbackMessage,

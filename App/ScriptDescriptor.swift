@@ -23,7 +23,7 @@ struct ScriptDescriptor: Sendable {
   }
 }
 
-enum ScriptType: String, Sendable {
+enum ScriptType: String, Codable, Hashable, Sendable {
   case sourceAppleScript
   case compiledAppleScript
   case scriptBundle

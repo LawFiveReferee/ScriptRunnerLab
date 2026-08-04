@@ -8,7 +8,10 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 - Preserves the original file URL and script-bundle context
 - Runs in a Cocoa application with AppKit and a main run loop
 - Reports structured AppleScript errors, source ranges, raw results, duration, UTI, and architecture
-- Provides Finder and Script Editor actions for the selected script
+- Displays results as AE Print or AppleScript source
+- Opens scripts in the user's default editor
+- Keeps persistent favorite scripts with source-derived compatibility coverage tags
+- Provides Finder and editor actions for the selected script
 
 ## Run
 
