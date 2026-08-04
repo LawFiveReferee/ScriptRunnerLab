@@ -145,7 +145,7 @@ struct ContentView: View {
     VStack(alignment: .leading, spacing: 8) {
       Label("Native AppleScript execution", systemImage: "applescript")
         .font(.title2.bold())
-      Text("Loads the original script with OSAKit so compiled context, bundles, resources, and “path to me” remain intact.")
+      Text("Runs scripts with OSAKit and launches AppleScript applets with NSWorkspace while preserving their original bundle context.")
         .foregroundStyle(.secondary)
     }
   }

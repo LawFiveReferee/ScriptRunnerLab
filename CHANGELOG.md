@@ -3,17 +3,24 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 8
+- Build: 9
 - Date: 2026-08-04
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 8
+### Build 9
 
-- Moved version/build metadata into the native macOS navigation subtitle for small secondary title text.
+- Added structural detection of AppleScript `.app` applets while rejecting ordinary application bundles.
+- Added supervised applet launching through NSWorkspace in ScriptRunnerHelper.
+- Applet cancellation and timeout now terminate both the helper and the launched applet process.
+- Added short-lived and stay-open applet compatibility fixtures and detection regression tests.
 
 ## Build history
+
+### Version 1.0, build 8
+
+- Moved version/build metadata into the native macOS navigation subtitle for small secondary title text.
 
 ### Version 1.0, build 7
 

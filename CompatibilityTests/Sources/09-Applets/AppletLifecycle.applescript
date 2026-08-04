@@ -1,6 +1,6 @@
 property idleInterval : 30
 
--- Current runner expectation: .app is unsupported. Future applet tests use these lifecycle handlers.
+-- Expected: this stay-open applet keeps running until Cancel or Timeout terminates it.
 on run
   return {eventName:"run", scriptLocation:((path to me) as text)}
 end run

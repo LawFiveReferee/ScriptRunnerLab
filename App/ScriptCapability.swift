@@ -75,8 +75,15 @@ struct ScriptCapability: Codable, Hashable, Identifiable, Sendable {
       return source
     }
 
+    let scriptURL: URL
+    if descriptor.scriptType == .appleScriptApplet {
+      scriptURL = descriptor.url.appending(path: "Contents/Resources/Scripts/main.scpt", directoryHint: .notDirectory)
+    } else {
+      scriptURL = descriptor.url
+    }
+
     var error: NSDictionary?
-    return OSAScript(contentsOf: descriptor.url, error: &error)?.source ?? ""
+    return OSAScript(contentsOf: scriptURL, error: &error)?.source ?? ""
   }
 
   private static func quotedNames(after keyword: String, in source: String) -> [String] {

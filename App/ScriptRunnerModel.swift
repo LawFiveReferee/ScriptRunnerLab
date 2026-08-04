@@ -90,7 +90,7 @@ final class ScriptRunnerModel {
 
   var diagnosticsText: String {
     var lines = [
-      "Engine: OSAKit",
+      "Engine: \(executionEngineName)",
       "Isolation: ScriptRunnerHelper (one process per request)",
       "Sandbox: disabled",
       "macOS: \(ProcessInfo.processInfo.operatingSystemVersionString)",
@@ -304,6 +304,10 @@ final class ScriptRunnerModel {
     #else
     "Unknown"
     #endif
+  }
+
+  private var executionEngineName: String {
+    descriptor?.scriptType == .appleScriptApplet ? "NSWorkspace applet launch" : "OSAKit"
   }
 
   private var defaultEditorURL: URL? {

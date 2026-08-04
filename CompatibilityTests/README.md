@@ -1,6 +1,6 @@
 # ScriptRunnerLab Compatibility Scripts
 
-These fixtures exercise the current OSAKit/helper path and preserve examples for future applet and handler support.
+These fixtures exercise the current OSAKit/helper path, NSWorkspace applet launching, and examples for future handler support.
 
 ## Recommended order
 
@@ -10,6 +10,7 @@ These fixtures exercise the current OSAKit/helper path and preserve examples for
 4. Run permission and UI scripts individually; macOS prompts and user interaction are expected.
 5. Run only the third-party library probes for libraries installed on the Mac.
 6. Run the compiled and bundled files in `Artifacts`.
+7. Run `BasicReturnApplet.app` for normal applet completion, then run `AppletLifecycle.app` to test Cancel or Timeout.
 
 ## Expected special results
 
@@ -21,12 +22,15 @@ These fixtures exercise the current OSAKit/helper path and preserve examples for
 - `InfiniteLoop.applescript`: status **Timed Out**; the main app must stay responsive.
 - `DelayForCancellation.applescript`: status **Cancelled**; the main app must stay responsive.
 - `PersistentProperty.applescript`: currently returns `1` on each isolated execution because every run uses a fresh helper process.
+- `BasicReturnApplet.app`: status **Completed** after its `run` handler exits.
+- `AppletLifecycle.app`: remains open for `idle`; use Cancel or Timeout and confirm no applet process remains.
 
 ## Artifact variants
 
 - `BasicReturn.scpt`: compiled-script loading.
 - `BundleResource.scptd`: script-bundle loading, `path to me`, and bundled resource access.
-- `AppletLifecycle.app`: future applet launch/lifecycle testing; `.app` is not supported by the current runner yet.
+- `BasicReturnApplet.app`: short-lived applet launch and normal termination.
+- `AppletLifecycle.app`: stay-open applet lifecycle, cancellation, and timeout termination.
 
 The third-party probes deliberately fail at load time when their named library is unavailable, quarantined, unsigned, or incompatible with the current architecture.
 

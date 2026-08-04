@@ -5,6 +5,7 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 ## Current milestone
 
 - Loads original `.applescript`, `.scpt`, and `.scptd` files with OSAKit
+- Launches AppleScript `.app` applets with NSWorkspace and supervises their lifecycle through the helper
 - Preserves the original file URL and script-bundle context
 - Runs each request in a separately signed, agent-style Cocoa helper
 - Uses one helper process per request for crash and state isolation
@@ -24,7 +25,7 @@ The app is intentionally not sandboxed. macOS privacy controls still apply, so s
 
 ## Compatibility scripts
 
-`CompatibilityTests` contains ordered AppleScript fixtures for unattended core checks, cancellation and timeout, Automation and Accessibility permissions, Standard Additions, AppleScriptObjC, third-party libraries, bundled resources, persistent properties, handler behavior, and future applet lifecycle support. Compiled `.scpt`, bundled `.scptd`, and applet `.app` variants are included and distributed inside the app as its default Scripts folder.
+`CompatibilityTests` contains ordered AppleScript fixtures for unattended core checks, cancellation and timeout, Automation and Accessibility permissions, Standard Additions, AppleScriptObjC, third-party libraries, bundled resources, persistent properties, handler behavior, and applet lifecycle support. Compiled `.scpt`, bundled `.scptd`, and applet `.app` variants are included and distributed inside the app as its default Scripts folder.
 
 ## Next milestone
 
