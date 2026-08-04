@@ -25,6 +25,16 @@ struct ContentView: View {
       }
       .navigationTitle("Script Runner Lab")
       .toolbar {
+        ToolbarItem(placement: .principal) {
+          HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Text("Script Runner Lab")
+              .font(.headline)
+            Text(versionBuildText)
+              .font(.caption2)
+              .foregroundStyle(.secondary)
+          }
+          .accessibilityElement(children: .combine)
+        }
         ToolbarItemGroup {
           scriptsFolderMenu
           Button("Choose Script", systemImage: "doc.badge.plus") {
@@ -35,11 +45,7 @@ struct ContentView: View {
             runner.isRunning ? "Cancel" : "Run",
             systemImage: runner.isRunning ? "stop.fill" : "play.fill"
           ) {
-            if runner.isRunning {
-              runner.cancel()
-            } else {
-              runner.run(timeout: executionTimeout.seconds)
-            }
+            runOrCancel()
           }
           .disabled(!runner.isRunning && !runner.canRun)
         }
@@ -197,6 +203,15 @@ struct ContentView: View {
           Text(runner.durationText)
             .monospacedDigit()
             .foregroundStyle(.secondary)
+          Button(
+            runner.isRunning ? "Cancel" : "Run",
+            systemImage: runner.isRunning ? "stop.fill" : "play.fill"
+          ) {
+            runOrCancel()
+          }
+          .buttonStyle(.borderedProminent)
+          .tint(runner.isRunning ? .red : .accentColor)
+          .disabled(!runner.isRunning && !runner.canRun)
         }
 
         Picker("Result format", selection: $resultDisplayMode) {
@@ -330,5 +345,19 @@ struct ContentView: View {
   private func capabilitySummary(for favorite: FavoriteScript) -> String {
     guard !favorite.capabilities.isEmpty else { return "No specific capabilities detected in available source" }
     return favorite.capabilities.map(\.displayName).joined(separator: " • ")
+  }
+
+  private var versionBuildText: String {
+    let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+    let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
+    return "Version \(version) • Build \(build)"
+  }
+
+  private func runOrCancel() {
+    if runner.isRunning {
+      runner.cancel()
+    } else {
+      runner.run(timeout: executionTimeout.seconds)
+    }
   }
 }

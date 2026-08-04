@@ -425,7 +425,9 @@ final class ScriptRunnerModel {
       }
       guard isScriptURL(url) else { continue }
 
-      let relativePath = String(url.path(percentEncoded: false).dropFirst(folderURL.path(percentEncoded: false).count + 1))
+      let folderComponents = folderURL.standardizedFileURL.pathComponents
+      let scriptComponents = url.standardizedFileURL.pathComponents
+      let relativePath = scriptComponents.dropFirst(folderComponents.count).joined(separator: "/")
       entries.append(
         ScriptFolderEntry(
           url: url,
