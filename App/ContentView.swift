@@ -3,8 +3,8 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
   @State private var runner = ScriptRunnerModel()
-  @State private var isChoosingScript = false
-  @State private var isChoosingScriptsFolder = false
+  @State private var isShowingImporter = false
+  @State private var importerPurpose = ImporterPurpose.script
   @State private var isDropTargeted = false
   @AppStorage("resultDisplayMode") private var resultDisplayMode = ResultDisplayMode.aePrint
   @AppStorage("executionTimeout") private var executionTimeout = ExecutionTimeout.thirtySeconds
@@ -23,22 +23,17 @@ struct ContentView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(24)
       }
-      .navigationTitle("Script Runner Lab")
+      .navigationTitle(
+        Text("Script Runner Lab")
+          + Text("  \(versionBuildText)")
+          .font(.caption2)
+          .foregroundColor(.secondary)
+      )
       .toolbar {
-        ToolbarItem(placement: .principal) {
-          HStack(alignment: .firstTextBaseline, spacing: 7) {
-            Text("Script Runner Lab")
-              .font(.headline)
-            Text(versionBuildText)
-              .font(.caption2)
-              .foregroundStyle(.secondary)
-          }
-          .accessibilityElement(children: .combine)
-        }
         ToolbarItemGroup {
           scriptsFolderMenu
           Button("Choose Script", systemImage: "doc.badge.plus") {
-            isChoosingScript = true
+            presentImporter(for: .script)
           }
           .disabled(runner.isRunning)
           Button(
@@ -51,18 +46,16 @@ struct ContentView: View {
         }
       }
       .fileImporter(
-        isPresented: $isChoosingScript,
-        allowedContentTypes: [.item],
+        isPresented: $isShowingImporter,
+        allowedContentTypes: importerPurpose.allowedContentTypes,
         allowsMultipleSelection: false
       ) { result in
-        runner.receiveSelection(result)
-      }
-      .fileImporter(
-        isPresented: $isChoosingScriptsFolder,
-        allowedContentTypes: [.folder],
-        allowsMultipleSelection: false
-      ) { result in
-        runner.receiveFolderSelection(result)
+        switch importerPurpose {
+        case .script:
+          runner.receiveSelection(result)
+        case .scriptsFolder:
+          runner.receiveFolderSelection(result)
+        }
       }
     }
   }
@@ -128,7 +121,7 @@ struct ContentView: View {
         runner.refreshScriptsFolder()
       }
       Button("Choose Scripts Folder…", systemImage: "folder.badge.plus") {
-        isChoosingScriptsFolder = true
+        presentImporter(for: .scriptsFolder)
       }
       Button("Use Compatibility Tests", systemImage: "arrow.uturn.backward") {
         runner.useBundledCompatibilityTests()
@@ -144,7 +137,7 @@ struct ContentView: View {
         runner.refreshScriptsFolder()
       }
       Button("Choose Scripts Folder…", systemImage: "folder.badge.plus") {
-        isChoosingScriptsFolder = true
+        presentImporter(for: .scriptsFolder)
       }
       Button("Use Compatibility Tests", systemImage: "arrow.uturn.backward") {
         runner.useBundledCompatibilityTests()
@@ -373,6 +366,23 @@ struct ContentView: View {
       runner.cancel()
     } else {
       runner.run(timeout: executionTimeout.seconds)
+    }
+  }
+
+  private func presentImporter(for purpose: ImporterPurpose) {
+    importerPurpose = purpose
+    isShowingImporter = true
+  }
+}
+
+private enum ImporterPurpose {
+  case script
+  case scriptsFolder
+
+  var allowedContentTypes: [UTType] {
+    switch self {
+    case .script: [.item]
+    case .scriptsFolder: [.folder]
     }
   }
 }
