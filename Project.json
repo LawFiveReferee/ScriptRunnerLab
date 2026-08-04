@@ -59,6 +59,14 @@
       "sources": [
         {
           "path": "App"
+        },
+        {
+          "buildPhase": "resources",
+          "excludes": [
+            "**/.DS_Store"
+          ],
+          "path": "CompatibilityTests",
+          "type": "folder"
         }
       ],
       "type": "application"

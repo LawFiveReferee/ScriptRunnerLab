@@ -10,6 +10,7 @@
 		0438CB241887181BECA262AB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9664B56C0A1C2B1F196A0B15 /* Assets.xcassets */; };
 		10206C16DD681B5A8E7FE82B /* ScriptRunnerLabHelper.app in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 35EA2D0810EAD34EAC0900A4 /* ScriptRunnerLabHelper.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		18381E785784C11F4EDFE3A1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7A7D99BAE4E6A1FAC18C47 /* ContentView.swift */; };
+		1A8791E12E91631A260A8021 /* ScriptFolderEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61EB287F796B267C655981E4 /* ScriptFolderEntry.swift */; };
 		21F99F1F1BE516EA48BF0537 /* ScriptCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B8A2B331001533CE2253A4 /* ScriptCapability.swift */; };
 		4B5882D7CE9B36CC6F83959B /* ScriptExecutionStatus+View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E40851872F8043D76B08A25 /* ScriptExecutionStatus+View.swift */; };
 		4C6334100253168984362246 /* ExecutionTimeout.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBE21D04B32A3E630493A41D /* ExecutionTimeout.swift */; };
@@ -21,6 +22,7 @@
 		D294291E7A443CC463A87840 /* ScriptRunnerKit in Frameworks */ = {isa = PBXBuildFile; productRef = BF48A79C10198CEC6172A061 /* ScriptRunnerKit */; };
 		D6BEB20FEC93477D8437C5ED /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = C14E697A9096430638B55B0E /* App.swift */; };
 		E3912497A81018AF5545EE74 /* ScriptRunnerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91515B6EE107BEFF844756D /* ScriptRunnerModel.swift */; };
+		F66C2E5021BB52D47162FF21 /* CompatibilityTests in Resources */ = {isa = PBXBuildFile; fileRef = 3144B5032362981D67B15EC7 /* CompatibilityTests */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,10 +51,12 @@
 
 /* Begin PBXFileReference section */
 		1C4F1EFED1B8439F5BF6C410 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		3144B5032362981D67B15EC7 /* CompatibilityTests */ = {isa = PBXFileReference; lastKnownFileType = folder; path = CompatibilityTests; sourceTree = "<group>"; };
 		35EA2D0810EAD34EAC0900A4 /* ScriptRunnerLabHelper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScriptRunnerLabHelper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E40851872F8043D76B08A25 /* ScriptExecutionStatus+View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ScriptExecutionStatus+View.swift"; sourceTree = "<group>"; };
 		4EF4E1F946347F7F3AFC0111 /* FavoriteScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteScript.swift; sourceTree = "<group>"; };
 		59A72D43105B7B429571C920 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		61EB287F796B267C655981E4 /* ScriptFolderEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptFolderEntry.swift; sourceTree = "<group>"; };
 		7BB98BE1F79203E34E06E636 /* HelperProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperProcessRunner.swift; sourceTree = "<group>"; };
 		7BC991C8ACD03D67F9AE2A08 /* ScriptRunnerKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ScriptRunnerKit; path = Packages/ScriptRunnerKit; sourceTree = SOURCE_ROOT; };
 		82B8A2B331001533CE2253A4 /* ScriptCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptCapability.swift; sourceTree = "<group>"; };
@@ -116,6 +120,7 @@
 				59A72D43105B7B429571C920 /* Info.plist */,
 				BA163970E14E4A624C227159 /* ResultDisplayMode.swift */,
 				82B8A2B331001533CE2253A4 /* ScriptCapability.swift */,
+				61EB287F796B267C655981E4 /* ScriptFolderEntry.swift */,
 				4E40851872F8043D76B08A25 /* ScriptExecutionStatus+View.swift */,
 				B91515B6EE107BEFF844756D /* ScriptRunnerModel.swift */,
 			);
@@ -126,6 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				507388474EA53CD97E1B8076 /* App */,
+				3144B5032362981D67B15EC7 /* CompatibilityTests */,
 				1786E8E4DC3D9548BC47FEFD /* Helper */,
 				89BB753A02D3C0E3CCDFA9B4 /* Packages */,
 				24CEAC5E4604A4C669D6CE5F /* Products */,
@@ -224,6 +230,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0438CB241887181BECA262AB /* Assets.xcassets in Resources */,
+				F66C2E5021BB52D47162FF21 /* CompatibilityTests in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,6 +248,7 @@
 				7B86FBDBC2C13009542DD7FE /* HelperProcessRunner.swift in Sources */,
 				887A8C0A521342EAA554A6D6 /* ResultDisplayMode.swift in Sources */,
 				21F99F1F1BE516EA48BF0537 /* ScriptCapability.swift in Sources */,
+				1A8791E12E91631A260A8021 /* ScriptFolderEntry.swift in Sources */,
 				4B5882D7CE9B36CC6F83959B /* ScriptExecutionStatus+View.swift in Sources */,
 				E3912497A81018AF5545EE74 /* ScriptRunnerModel.swift in Sources */,
 			);

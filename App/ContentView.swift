@@ -4,6 +4,8 @@ import UniformTypeIdentifiers
 struct ContentView: View {
   @State private var runner = ScriptRunnerModel()
   @State private var isChoosingScript = false
+  @State private var isChoosingScriptsFolder = false
+  @State private var isDropTargeted = false
   @AppStorage("resultDisplayMode") private var resultDisplayMode = ResultDisplayMode.aePrint
   @AppStorage("executionTimeout") private var executionTimeout = ExecutionTimeout.thirtySeconds
 
@@ -12,6 +14,7 @@ struct ContentView: View {
       ScrollView {
         VStack(alignment: .leading, spacing: 20) {
           header
+          dropZone
           favoritesCard
           scriptCard
           executionCard
@@ -23,6 +26,7 @@ struct ContentView: View {
       .navigationTitle("Script Runner Lab")
       .toolbar {
         ToolbarItemGroup {
+          scriptsFolderMenu
           Button("Choose Script", systemImage: "doc.badge.plus") {
             isChoosingScript = true
           }
@@ -46,6 +50,83 @@ struct ContentView: View {
         allowsMultipleSelection: false
       ) { result in
         runner.receiveSelection(result)
+      }
+      .fileImporter(
+        isPresented: $isChoosingScriptsFolder,
+        allowedContentTypes: [.folder],
+        allowsMultipleSelection: false
+      ) { result in
+        runner.receiveFolderSelection(result)
+      }
+    }
+  }
+
+  private var dropZone: some View {
+    VStack(spacing: 8) {
+      Image(systemName: "square.and.arrow.down")
+        .font(.title2)
+        .foregroundStyle(isDropTargeted ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
+      Text("Drop a script here")
+        .font(.headline)
+      Text("AppleScript source, compiled scripts, script bundles, and applets")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    }
+    .frame(maxWidth: .infinity, minHeight: 92)
+    .background(
+      isDropTargeted ? Color.accentColor.opacity(0.12) : Color.clear,
+      in: RoundedRectangle(cornerRadius: 12)
+    )
+    .overlay {
+      RoundedRectangle(cornerRadius: 12)
+        .stroke(
+          isDropTargeted ? Color.accentColor : Color.secondary.opacity(0.45),
+          style: StrokeStyle(lineWidth: isDropTargeted ? 2 : 1, dash: [7, 5])
+        )
+    }
+    .dropDestination(for: URL.self) { urls, _ in
+      runner.receiveDroppedURLs(urls)
+    } isTargeted: { isTargeted in
+      withAnimation(.snappy) {
+        isDropTargeted = isTargeted
+      }
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("Drop a script to select it")
+  }
+
+  private var scriptsFolderMenu: some View {
+    Menu {
+      if runner.scriptsFolderEntries.isEmpty {
+        Text("No scripts found")
+      } else {
+        ForEach(runner.scriptsFolderEntries) { entry in
+          Button(entry.relativePath) {
+            runner.selectFolderScript(entry)
+          }
+          .disabled(runner.isRunning)
+        }
+      }
+
+      Divider()
+      Button("Choose Scripts Folder…", systemImage: "folder.badge.plus") {
+        isChoosingScriptsFolder = true
+      }
+      Button("Use Compatibility Tests", systemImage: "arrow.uturn.backward") {
+        runner.useBundledCompatibilityTests()
+      }
+    } label: {
+      Label(runner.scriptsFolderDisplayName, systemImage: "folder")
+    }
+    .labelStyle(.iconOnly)
+    .help("Scripts in \(runner.scriptsFolderDisplayName)")
+    .accessibilityLabel("Scripts folder: \(runner.scriptsFolderDisplayName)")
+    .contextMenu {
+      Button("Choose Scripts Folder…", systemImage: "folder.badge.plus") {
+        isChoosingScriptsFolder = true
+      }
+      Button("Use Compatibility Tests", systemImage: "arrow.uturn.backward") {
+        runner.useBundledCompatibilityTests()
       }
     }
   }

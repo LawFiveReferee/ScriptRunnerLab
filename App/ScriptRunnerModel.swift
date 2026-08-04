@@ -1,4 +1,5 @@
 import AppKit
+import CoreServices
 import Foundation
 import Observation
 import ScriptRunnerKit
@@ -11,13 +12,19 @@ final class ScriptRunnerModel {
   var status = ScriptExecutionStatus.ready
   var isRunning = false
   var favorites: [FavoriteScript]
+  var scriptsFolderURL: URL?
+  var scriptsFolderEntries: [ScriptFolderEntry] = []
 
   private static let favoritesKey = "favoriteScripts"
+  private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
   private let helperRunner = HelperProcessRunner()
   private var executionTask: Task<Void, Never>?
+  private var scriptsFolderAccessURL: URL?
 
   init() {
     favorites = Self.loadFavorites()
+    scriptsFolderURL = nil
+    restoreScriptsFolder()
   }
 
   var canRun: Bool {
@@ -30,11 +37,15 @@ final class ScriptRunnerModel {
   }
 
   var defaultEditorName: String {
-    guard let url = descriptor?.url,
-          let applicationURL = NSWorkspace.shared.urlForApplication(toOpen: url) else {
+    guard let applicationURL = defaultEditorURL else {
       return "Default Editor"
     }
     return FileManager.default.displayName(atPath: applicationURL.path)
+  }
+
+  var scriptsFolderDisplayName: String {
+    guard let scriptsFolderURL else { return "Scripts Folder" }
+    return FileManager.default.displayName(atPath: scriptsFolderURL.path)
   }
 
   var selectedFavoriteID: UUID? {
@@ -95,11 +106,42 @@ final class ScriptRunnerModel {
   func receiveSelection(_ selection: Result<[URL], any Error>) {
     do {
       guard let url = try selection.get().first else { return }
-      descriptor = ScriptDescriptor(url: url)
-      result = nil
-      status = .ready
+      selectScript(at: url)
     } catch {
       showLocalError(error.localizedDescription)
+    }
+  }
+
+  func receiveFolderSelection(_ selection: Result<[URL], any Error>) {
+    do {
+      guard let url = try selection.get().first else { return }
+      try setScriptsFolder(url, persist: true)
+    } catch {
+      showLocalError("The scripts folder could not be opened. \(error.localizedDescription)")
+    }
+  }
+
+  func receiveDroppedURLs(_ urls: [URL]) -> Bool {
+    guard let url = urls.first(where: Self.isScriptURL) else { return false }
+    selectScript(at: url)
+    return true
+  }
+
+  func selectFolderScript(_ entry: ScriptFolderEntry) {
+    selectScript(at: entry.url)
+  }
+
+  func useBundledCompatibilityTests() {
+    guard let url = Self.bundledCompatibilityTestsURL else {
+      showLocalError("The bundled CompatibilityTests folder could not be found.")
+      return
+    }
+
+    do {
+      try setScriptsFolder(url, persist: false)
+      UserDefaults.standard.removeObject(forKey: Self.scriptsFolderBookmarkKey)
+    } catch {
+      showLocalError("The bundled CompatibilityTests folder could not be opened. \(error.localizedDescription)")
     }
   }
 
@@ -213,8 +255,17 @@ final class ScriptRunnerModel {
   }
 
   func openInDefaultEditor() {
-    guard let url = descriptor?.url else { return }
-    NSWorkspace.shared.open(url)
+    guard let url = descriptor?.url, let editorURL = defaultEditorURL else { return }
+    NSWorkspace.shared.open(
+      [url],
+      withApplicationAt: editorURL,
+      configuration: NSWorkspace.OpenConfiguration()
+    ) { [weak self] _, error in
+      guard let error else { return }
+      Task { @MainActor in
+        self?.showLocalError("The script could not be opened in the default editor. \(error.localizedDescription)")
+      }
+    }
   }
 
   func copyResult(mode: ResultDisplayMode) {
@@ -235,6 +286,27 @@ final class ScriptRunnerModel {
     #else
     "Unknown"
     #endif
+  }
+
+  private var defaultEditorURL: URL? {
+    guard descriptor != nil else { return nil }
+    let contentType = editorContentType as CFString
+    guard let unmanagedIdentifier = LSCopyDefaultRoleHandlerForContentType(contentType, .editor) else {
+      return nil
+    }
+    let bundleIdentifier = unmanagedIdentifier.takeRetainedValue() as String
+    return NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier)
+  }
+
+  private var editorContentType: String {
+    switch descriptor?.url.pathExtension.lowercased() {
+    case "scpt":
+      "com.apple.applescript.script"
+    case "scptd":
+      "com.apple.applescript.script-bundle"
+    default:
+      "com.apple.applescript.text"
+    }
   }
 
   private func showLocalError(
@@ -269,6 +341,103 @@ final class ScriptRunnerModel {
     } catch {
       showLocalError("This script could not be added to Favorites. \(error.localizedDescription)")
     }
+  }
+
+  private func selectScript(at url: URL) {
+    descriptor = ScriptDescriptor(url: url)
+    result = nil
+    status = .ready
+  }
+
+  private func restoreScriptsFolder() {
+    if let bookmark = UserDefaults.standard.data(forKey: Self.scriptsFolderBookmarkKey) {
+      do {
+        var isStale = false
+        let url = try URL(
+          resolvingBookmarkData: bookmark,
+          options: [.withSecurityScope],
+          relativeTo: nil,
+          bookmarkDataIsStale: &isStale
+        )
+        try setScriptsFolder(url, persist: isStale)
+        return
+      } catch {
+        UserDefaults.standard.removeObject(forKey: Self.scriptsFolderBookmarkKey)
+      }
+    }
+
+    if let url = Self.bundledCompatibilityTestsURL {
+      try? setScriptsFolder(url, persist: false)
+    }
+  }
+
+  private func setScriptsFolder(_ url: URL, persist: Bool) throws {
+    var isDirectory: ObjCBool = false
+    guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory), isDirectory.boolValue else {
+      throw CocoaError(.fileNoSuchFile)
+    }
+
+    if scriptsFolderAccessURL != url {
+      scriptsFolderAccessURL?.stopAccessingSecurityScopedResource()
+      if url.startAccessingSecurityScopedResource() {
+        scriptsFolderAccessURL = url
+      } else {
+        scriptsFolderAccessURL = nil
+      }
+    }
+
+    scriptsFolderURL = url
+    scriptsFolderEntries = Self.scriptEntries(in: url)
+
+    if persist {
+      let bookmark = try url.bookmarkData(
+        options: [.withSecurityScope],
+        includingResourceValuesForKeys: nil,
+        relativeTo: nil
+      )
+      UserDefaults.standard.set(bookmark, forKey: Self.scriptsFolderBookmarkKey)
+    }
+  }
+
+  private static var bundledCompatibilityTestsURL: URL? {
+    Bundle.main.url(forResource: "CompatibilityTests", withExtension: nil)
+  }
+
+  private static func scriptEntries(in folderURL: URL) -> [ScriptFolderEntry] {
+    let resourceKeys: [URLResourceKey] = [.isDirectoryKey, .isPackageKey]
+    guard let enumerator = FileManager.default.enumerator(
+      at: folderURL,
+      includingPropertiesForKeys: resourceKeys,
+      options: [.skipsHiddenFiles]
+    ) else {
+      return []
+    }
+
+    var entries: [ScriptFolderEntry] = []
+    while let url = enumerator.nextObject() as? URL {
+      let fileExtension = url.pathExtension.lowercased()
+      if fileExtension == "scptd" || fileExtension == "app" {
+        enumerator.skipDescendants()
+      }
+      guard isScriptURL(url) else { continue }
+
+      let relativePath = String(url.path(percentEncoded: false).dropFirst(folderURL.path(percentEncoded: false).count + 1))
+      entries.append(
+        ScriptFolderEntry(
+          url: url,
+          relativePath: relativePath,
+          descriptor: ScriptDescriptor(url: url)
+        )
+      )
+    }
+
+    return entries.sorted {
+      $0.relativePath.localizedStandardCompare($1.relativePath) == .orderedAscending
+    }
+  }
+
+  private static func isScriptURL(_ url: URL) -> Bool {
+    ["applescript", "scpt", "scptd", "app"].contains(url.pathExtension.lowercased())
   }
 
   private func favorite(for descriptor: ScriptDescriptor) throws -> FavoriteScript {
