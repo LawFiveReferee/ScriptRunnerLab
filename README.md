@@ -22,9 +22,13 @@ Open the project in Bitrig or Xcode, build `ScriptRunnerLab`, choose a script, a
 
 The app is intentionally not sandboxed. macOS privacy controls still apply, so scripts that automate other applications can trigger Automation permission prompts.
 
+## Compatibility scripts
+
+`CompatibilityTests` contains ordered AppleScript fixtures for unattended core checks, cancellation and timeout, Automation and Accessibility permissions, Standard Additions, AppleScriptObjC, third-party libraries, bundled resources, persistent properties, handler behavior, and future applet lifecycle support. Compiled `.scpt`, bundled `.scptd`, and applet `.app` variants are included.
+
 ## Next milestone
 
-Add AppleScript applet execution and begin the automated compatibility test suite, including timeout, cancellation, permissions, bundled resources, AppleScriptObjC, and installed libraries.
+Add AppleScript applet execution and automate the unattended compatibility fixtures while retaining manual tests for permissions and interactive UI.
 
 ## Scope
 
