@@ -7,6 +7,7 @@ extension ScriptExecutionStatus {
     case .ready: "circle.dotted"
     case .running: "play.fill"
     case .completed: "checkmark.circle.fill"
+    case .compileError: "exclamationmark.triangle.fill"
     case .failed: "exclamationmark.triangle.fill"
     case .cancelled: "stop.fill"
     case .timedOut: "clock.badge.exclamationmark.fill"
@@ -18,6 +19,7 @@ extension ScriptExecutionStatus {
     case .ready: .secondary
     case .running: .accentColor
     case .completed: .green
+    case .compileError: .red
     case .failed: .red
     case .cancelled: .orange
     case .timedOut: .orange

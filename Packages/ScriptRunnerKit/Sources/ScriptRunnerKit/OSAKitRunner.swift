@@ -37,6 +37,19 @@ public struct OSAKitRunner {
       )
     }
 
+    if !script.isCompiled {
+      var compileError: NSDictionary?
+      guard script.compileAndReturnError(&compileError) else {
+        return failureResult(
+          requestID: requestID,
+          startedAt: startedAt,
+          error: compileError,
+          fallbackMessage: "AppleScript compilation failed.",
+          status: .compileError
+        )
+      }
+    }
+
     var executionError: NSDictionary?
     let descriptor = script.executeAndReturnError(&executionError)
     let completedAt = Date()
@@ -71,12 +84,13 @@ public struct OSAKitRunner {
     startedAt: Date,
     completedAt: Date = Date(),
     error: NSDictionary?,
-    fallbackMessage: String
+    fallbackMessage: String,
+    status: ScriptExecutionStatus = .failed
   ) -> ScriptExecutionResult {
     let range = (error?[OSAScriptErrorRange] as? NSValue)?.rangeValue
     return ScriptExecutionResult(
       requestID: requestID,
-      status: .failed,
+      status: status,
       sourceResultDescription: nil,
       rawResultDescription: nil,
       errorNumber: (error?[OSAScriptErrorNumber] as? NSNumber)?.intValue,

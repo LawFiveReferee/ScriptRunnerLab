@@ -72,16 +72,18 @@ public struct ScriptSourceRange: Codable, Sendable {
   }
 }
 
-public enum ScriptExecutionStatus: String, Codable, Sendable {
+public enum ScriptExecutionStatus: String, Codable, Equatable, Sendable {
   case ready
   case running
   case completed
+  case compileError
   case failed
   case cancelled
   case timedOut
 
   public var displayName: String {
     switch self {
+    case .compileError: "AppleScript Compile Error"
     case .timedOut: "Timed Out"
     default: rawValue.capitalized
     }

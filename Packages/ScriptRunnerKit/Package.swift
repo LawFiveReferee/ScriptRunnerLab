@@ -16,6 +16,10 @@ let package = Package(
       linkerSettings: [
         .linkedFramework("OSAKit")
       ]
+    ),
+    .testTarget(
+      name: "ScriptRunnerKitTests",
+      dependencies: ["ScriptRunnerKit"]
     )
   ]
 )

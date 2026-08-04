@@ -70,7 +70,11 @@ final class ScriptRunnerModel {
       }
     }
 
-    var lines = [result.errorMessage ?? "Unknown AppleScript error"]
+    var lines: [String] = []
+    if result.status == .compileError {
+      lines.append(result.status.displayName)
+    }
+    lines.append(result.errorMessage ?? result.errorBriefMessage ?? "Unknown AppleScript error")
     if let errorNumber = result.errorNumber {
       lines.append("Error number: \(errorNumber)")
     }

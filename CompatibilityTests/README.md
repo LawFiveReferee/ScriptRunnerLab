@@ -14,7 +14,7 @@ These fixtures exercise the current OSAKit/helper path and preserve examples for
 ## Expected special results
 
 - `IntentionalRuntimeError.applescript`: structured error number `-2700`.
-- `IntentionalSyntaxError.applescript`: load/compile error with a source range.
+- `IntentionalSyntaxError.applescript`: status **AppleScript Compile Error**, error number `-2741`, the compiler message, and a source range.
 - `MissingApplication.applescript`: missing-application error.
 - `MissingLibrary.applescript`: missing-library compile/load error.
 - `UserCancellation.applescript`: error number `-128` when Cancel is selected.
