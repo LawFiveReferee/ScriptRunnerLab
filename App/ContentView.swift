@@ -223,14 +223,6 @@ struct ContentView: View {
             .foregroundStyle(.secondary)
         }
 
-        Picker("Result format", selection: $resultDisplayMode) {
-          ForEach(ResultDisplayMode.allCases) { mode in
-            Text(mode.displayName).tag(mode)
-          }
-        }
-        .pickerStyle(.segmented)
-        .frame(maxWidth: 260)
-
         Picker("Timeout", selection: $executionTimeout) {
           ForEach(ExecutionTimeout.allCases) { timeout in
             Text(timeout.displayName).tag(timeout)
@@ -238,6 +230,14 @@ struct ContentView: View {
         }
         .pickerStyle(.menu)
         .disabled(runner.isRunning)
+
+        Picker("Result format", selection: $resultDisplayMode) {
+          ForEach(ResultDisplayMode.allCases) { mode in
+            Text(mode.displayName).tag(mode)
+          }
+        }
+        .pickerStyle(.segmented)
+        .frame(maxWidth: 260)
 
         TextEditor(text: .constant(runner.outputText(for: resultDisplayMode)))
           .font(.system(.body, design: .monospaced))
