@@ -107,9 +107,18 @@ struct ContentView: View {
         Text("No scripts found")
       } else {
         ForEach(runner.scriptsFolderEntries) { entry in
-          Button(entry.relativePath) {
+          Button {
             runner.selectFolderScript(entry)
+          } label: {
+            if runner.hasExecuted(entry) {
+              Label(entry.relativePath, systemImage: "checkmark")
+            } else {
+              Text(entry.relativePath)
+            }
           }
+          .accessibilityLabel(
+            runner.hasExecuted(entry) ? "Executed: \(entry.relativePath)" : entry.relativePath
+          )
           .disabled(runner.isRunning)
         }
       }

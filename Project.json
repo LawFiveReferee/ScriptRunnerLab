@@ -41,7 +41,7 @@
         "properties": {
           "CFBundleDisplayName": "Script Runner Lab",
           "CFBundleShortVersionString": "1.0",
-          "CFBundleVersion": "2",
+          "CFBundleVersion": "3",
           "ITSAppUsesNonExemptEncryption": false,
           "LSApplicationCategoryType": "public.app-category.developer-tools"
         }
@@ -50,7 +50,7 @@
       "settings": {
         "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
         "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
-        "CURRENT_PROJECT_VERSION": "2",
+        "CURRENT_PROJECT_VERSION": "3",
         "MARKETING_VERSION": "1.0",
         "PRODUCT_BUNDLE_IDENTIFIER": "org.scriptrunnerlab.app",
         "PRODUCT_NAME": "$(TARGET_NAME)",
@@ -82,13 +82,13 @@
         "properties": {
           "CFBundleDisplayName": "ScriptRunnerHelper",
           "CFBundleShortVersionString": "1.0",
-          "CFBundleVersion": "2",
+          "CFBundleVersion": "3",
           "LSUIElement": true
         }
       },
       "platform": "macOS",
       "settings": {
-        "CURRENT_PROJECT_VERSION": "2",
+        "CURRENT_PROJECT_VERSION": "3",
         "MARKETING_VERSION": "1.0",
         "PRODUCT_BUNDLE_IDENTIFIER": "org.scriptrunnerlab.helper",
         "PRODUCT_NAME": "ScriptRunnerHelper",

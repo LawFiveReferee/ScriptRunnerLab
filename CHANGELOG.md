@@ -3,13 +3,19 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 2
+- Build: 3
 - Date: 2026-08-04
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 2
+### Build 3
+
+- Added per-launch checkmarks beside Scripts-folder items that have been run.
+
+## Build history
+
+### Version 1.0, build 2
 
 - Added isolated helper-process execution, cancellation, and configurable timeouts.
 - Added Favorites with compatibility-capability detection.
@@ -19,8 +25,6 @@
 - Open in Editor now uses the user’s default AppleScript editor role.
 - Added explicit AppleScript compilation with structured compile-error reporting.
 - Added version/build display and an Execution-panel Run/Cancel control.
-
-## Build history
 
 ### Version 1.0, build 1
 

@@ -29,3 +29,7 @@ These fixtures exercise the current OSAKit/helper path and preserve examples for
 - `AppletLifecycle.app`: future applet launch/lifecycle testing; `.app` is not supported by the current runner yet.
 
 The third-party probes deliberately fail at load time when their named library is unavailable, quarantined, unsigned, or incompatible with the current architecture.
+
+## File-format variants
+
+The `Artifacts` folder contains representative `.scpt`, `.scptd`, and `.app` variants. The suite does not mechanically convert every source fixture: syntax-error source cannot become a compiled artifact, script bundles are most useful for resource and `path to me` behavior, and applets require lifecycle tests rather than ordinary `run` tests. Add another artifact when its file format changes the behavior being tested.

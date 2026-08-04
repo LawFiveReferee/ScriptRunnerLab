@@ -14,6 +14,7 @@ final class ScriptRunnerModel {
   var favorites: [FavoriteScript]
   var scriptsFolderURL: URL?
   var scriptsFolderEntries: [ScriptFolderEntry] = []
+  var executedScriptPaths: Set<String> = []
 
   private static let favoritesKey = "favoriteScripts"
   private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
@@ -135,6 +136,10 @@ final class ScriptRunnerModel {
     selectScript(at: entry.url)
   }
 
+  func hasExecuted(_ entry: ScriptFolderEntry) -> Bool {
+    executedScriptPaths.contains(Self.scriptIdentity(for: entry.url))
+  }
+
   func useBundledCompatibilityTests() {
     guard let url = Self.bundledCompatibilityTestsURL else {
       showLocalError("The bundled CompatibilityTests folder could not be found.")
@@ -193,6 +198,7 @@ final class ScriptRunnerModel {
 
   func run(timeout: TimeInterval) {
     guard let descriptor, canRun else { return }
+    executedScriptPaths.insert(Self.scriptIdentity(for: descriptor.url))
     let accessed = descriptor.url.startAccessingSecurityScopedResource()
     defer {
       if accessed {
@@ -444,6 +450,10 @@ final class ScriptRunnerModel {
 
   private static func isScriptURL(_ url: URL) -> Bool {
     ["applescript", "scpt", "scptd", "app"].contains(url.pathExtension.lowercased())
+  }
+
+  private static func scriptIdentity(for url: URL) -> String {
+    url.standardizedFileURL.path(percentEncoded: false)
   }
 
   private func favorite(for descriptor: ScriptDescriptor) throws -> FavoriteScript {
