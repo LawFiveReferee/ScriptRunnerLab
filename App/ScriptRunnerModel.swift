@@ -17,15 +17,20 @@ final class ScriptRunnerModel {
   var scriptsFolderURL: URL?
   var scriptsFolderEntries: [ScriptFolderEntry] = []
   var executedScriptPaths: Set<String> = []
+  var executionLogURL: URL
 
   private static let favoritesKey = "favoriteScripts"
   private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
   private let helperRunner = HelperProcessRunner()
+  private let executionLogWriter: ScriptExecutionLogWriter
   private var executionTask: Task<Void, Never>?
   private var scriptsFolderAccessURL: URL?
   private var scriptsFolderMonitors: [DispatchSourceFileSystemObject] = []
 
   init() {
+    let executionLogURL = Self.defaultExecutionLogURL
+    self.executionLogURL = executionLogURL
+    self.executionLogWriter = ScriptExecutionLogWriter(fileURL: executionLogURL)
     favorites = Self.loadFavorites()
     scriptsFolderURL = nil
     restoreScriptsFolder()
@@ -89,23 +94,41 @@ final class ScriptRunnerModel {
   }
 
   var diagnosticsText: String {
-    var lines = [
+    var lines: [String] = []
+    if let descriptor {
+      lines.append("Script: \(descriptor.displayName)")
+      lines.append("Path: \(descriptor.url.path(percentEncoded: false))")
+    }
+    lines.append(contentsOf: [
       "Engine: \(executionEngineName)",
       "Isolation: ScriptRunnerHelper (one process per request)",
       "Sandbox: disabled",
       "macOS: \(ProcessInfo.processInfo.operatingSystemVersionString)",
       "Architecture: \(architectureName)"
-    ]
+    ])
     if let descriptor {
+      lines.append("Script type: \(descriptor.scriptType.displayName)")
       lines.append("UTI: \(descriptor.typeIdentifier ?? "Unknown")")
       lines.append("Original URL preserved: yes")
     }
+    lines.append("Execution log: \(executionLogURL.path(percentEncoded: false))")
     if let result {
       lines.append("Request ID: \(result.requestID.uuidString)")
       lines.append("Started: \(result.startedAt.formatted(.iso8601))")
       lines.append("Completed: \(result.completedAt.formatted(.iso8601))")
-      if let rawResultDescription = result.rawResultDescription {
-        lines.append("Raw result: \(rawResultDescription)")
+      lines.append("Duration: \(result.executionDuration.formatted(.number.precision(.fractionLength(3)))) s")
+      lines.append("Status: \(result.status.displayName)")
+      if let errorNumber = result.errorNumber {
+        lines.append("Error number: \(errorNumber)")
+      }
+      if let errorRange = result.errorRange {
+        lines.append("Source range: \(errorRange.location)–\(errorRange.location + errorRange.length)")
+      }
+      if result.status == .completed,
+         let returnValue = result.sourceResultDescription ?? result.rawResultDescription {
+        lines.append("Return value: \(returnValue)")
+      } else if let errorMessage = result.errorMessage ?? result.errorBriefMessage {
+        lines.append("Error: \(errorMessage)")
       }
     }
     return lines.joined(separator: "\n")
@@ -219,6 +242,9 @@ final class ScriptRunnerModel {
       request = try ScriptExecutionRequest(scriptURL: descriptor.url)
     } catch {
       showLocalError("The script could not be prepared for the helper. \(error.localizedDescription)")
+      if let result {
+        Task { await recordExecution(descriptor: descriptor, result: result) }
+      }
       return
     }
 
@@ -257,6 +283,9 @@ final class ScriptRunnerModel {
           startedAt: startedAt
         )
       }
+      if let result {
+        await recordExecution(descriptor: descriptor, result: result)
+      }
       executionTask = nil
     }
   }
@@ -289,6 +318,11 @@ final class ScriptRunnerModel {
   func copyResult(mode: ResultDisplayMode) {
     NSPasteboard.general.clearContents()
     NSPasteboard.general.setString(outputText(for: mode), forType: .string)
+  }
+
+  func copyDiagnostics() {
+    NSPasteboard.general.clearContents()
+    NSPasteboard.general.setString(diagnosticsText, forType: .string)
   }
 
   func clearResult() {
@@ -521,6 +555,45 @@ final class ScriptRunnerModel {
 
   private static func scriptIdentity(for url: URL) -> String {
     url.standardizedFileURL.path(percentEncoded: false)
+  }
+
+  private func recordExecution(descriptor: ScriptDescriptor, result: ScriptExecutionResult) async {
+    let bundle = Bundle.main
+    let entry = ScriptExecutionLogEntry(
+      host: .init(
+        name: bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "ScriptRunnerLab",
+        bundleIdentifier: bundle.bundleIdentifier,
+        version: bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+        build: bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+      ),
+      script: .init(
+        name: descriptor.displayName,
+        path: descriptor.url.path(percentEncoded: false),
+        fileExtension: descriptor.fileExtension,
+        typeIdentifier: descriptor.typeIdentifier,
+        scriptType: descriptor.scriptType,
+        isPackage: descriptor.isPackage
+      ),
+      environment: .init(
+        operatingSystem: ProcessInfo.processInfo.operatingSystemVersionString,
+        architecture: architectureName,
+        isSandboxed: false,
+        isolation: "ScriptRunnerHelper (one process per request)"
+      ),
+      engine: descriptor.scriptType == .appleScriptApplet ? .nsWorkspaceApplet : .osaKit,
+      result: result
+    )
+    try? await executionLogWriter.append(entry)
+  }
+
+  private static var defaultExecutionLogURL: URL {
+    let applicationSupportURL = FileManager.default.urls(
+      for: .applicationSupportDirectory,
+      in: .userDomainMask
+    ).first ?? FileManager.default.temporaryDirectory
+    return applicationSupportURL
+      .appending(path: "ScriptRunnerLab", directoryHint: .isDirectory)
+      .appending(path: "ScriptExecutionLog.jsonl", directoryHint: .notDirectory)
   }
 
   private func favorite(for descriptor: ScriptDescriptor) throws -> FavoriteScript {

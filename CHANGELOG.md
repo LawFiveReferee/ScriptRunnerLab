@@ -3,20 +3,27 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 9
-- Date: 2026-08-04
+- Build: 10
+- Date: 2026-08-05
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 9
+### Build 10
+
+- Added script name and full path at the top of Diagnostics.
+- Added status, duration, and final return value or error at the end of Diagnostics.
+- Added Copy Diagnostics.
+- Added a reusable, versioned ScriptRunnerKit JSON-lines execution log for ScriptRunnerLab, UpDock, and other hosts.
+
+## Build history
+
+### Version 1.0, build 9
 
 - Added structural detection of AppleScript `.app` applets while rejecting ordinary application bundles.
 - Added supervised applet launching through NSWorkspace in ScriptRunnerHelper.
 - Applet cancellation and timeout now terminate both the helper and the launched applet process.
 - Added short-lived and stay-open applet compatibility fixtures and detection regression tests.
-
-## Build history
 
 ### Version 1.0, build 8
 

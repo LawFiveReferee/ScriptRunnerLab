@@ -264,11 +264,17 @@ struct ContentView: View {
 
   private var diagnosticsCard: some View {
     GroupBox("Diagnostics") {
-      Text(runner.diagnosticsText)
-        .font(.system(.caption, design: .monospaced))
-        .textSelection(.enabled)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, 8)
+      VStack(alignment: .leading, spacing: 10) {
+        Text(runner.diagnosticsText)
+          .font(.system(.caption, design: .monospaced))
+          .textSelection(.enabled)
+          .frame(maxWidth: .infinity, alignment: .leading)
+        Button("Copy Diagnostics", systemImage: "document.on.document") {
+          runner.copyDiagnostics()
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.top, 8)
     }
   }
 
