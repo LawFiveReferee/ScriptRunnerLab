@@ -3,21 +3,29 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 25
+- Build: 26
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 25
+### Build 26
+
+- Packaged the complete baseline CompatibilityTests fixture set as ScriptRunnerKit resources.
+- Added CompatibilityTestResources for locating the shared fixture root and individual manifest entries.
+- Removed ScriptRunnerLab's separate resource-copy configuration and switched it to the package resource API.
+- Preserved compiled scripts, script bundles, applets, bundled resources, and executable permissions.
+- Added package regression coverage ensuring every manifest fixture exists and packaged applets remain executable.
+
+## Build history
+
+### Version 1.0, build 25
 
 - Added a versioned, Codable compatibility-suite summary model to ScriptRunnerKit.
 - Shared summaries include host/build identity, environment, timing, expectations, observations, deferred tests, and log location.
 - Added shared human-readable formatting and stable ISO 8601 JSON export.
 - ScriptRunnerLab's Copy Summary now uses the package formatter and the UI adds Copy JSON.
 - Added JSON round-trip and formatted-report regression coverage.
-
-## Build history
 
 ### Version 1.0, build 24
 

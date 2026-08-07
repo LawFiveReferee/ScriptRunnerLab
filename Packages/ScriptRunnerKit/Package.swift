@@ -13,6 +13,9 @@ let package = Package(
   targets: [
     .target(
       name: "ScriptRunnerKit",
+      resources: [
+        .copy("Resources/CompatibilityTests")
+      ],
       linkerSettings: [
         .linkedFramework("OSAKit")
       ]

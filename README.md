@@ -51,7 +51,7 @@ Automatic execution runs every supported script in sorted order and returns a co
 
 ## Compatibility scripts
 
-`CompatibilityTests` contains ordered AppleScript fixtures for unattended core checks, cancellation and timeout, Automation and Accessibility permissions, Standard Additions, AppleScriptObjC, third-party libraries, bundled resources, persistent properties, handler behavior, and applet lifecycle support. Compiled `.scpt`, bundled `.scptd`, and applet `.app` variants are included and distributed inside the app as its default Scripts folder. The app's automatic suite runs safe, deterministic tests one at a time and checks exact return values or structured error details. Machine-dependent results use explicit constraints. Interactive, permission-sensitive, intentionally hanging, and optional third-party tests remain visible as manual or optional tests with an explanation.
+ScriptRunnerKit's packaged `CompatibilityTests` resources contain ordered AppleScript fixtures for unattended core checks, cancellation and timeout, Automation and Accessibility permissions, Standard Additions, AppleScriptObjC, third-party libraries, bundled resources, persistent properties, handler behavior, and applet lifecycle support. Compiled `.scpt`, bundled `.scptd`, and applet `.app` variants are included and distributed inside the app as its default Scripts folder. The app's automatic suite runs safe, deterministic tests one at a time and checks exact return values or structured error details. Machine-dependent results use explicit constraints. Interactive, permission-sensitive, intentionally hanging, and optional third-party tests remain visible as manual or optional tests with an explanation.
 
 ## Execution log
 
@@ -65,7 +65,7 @@ OSAKit does not publicly expose AppleScript's four built-in progress values to h
 
 ## Next milestone
 
-Package the baseline compatibility fixtures for simpler reuse by additional host applications.
+Move the helper application's runtime implementation into ScriptRunnerKit so embedded helper targets need only a minimal launcher.
 
 ## Scope
 

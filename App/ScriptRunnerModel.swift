@@ -774,7 +774,7 @@ final class ScriptRunnerModel {
   }
 
   private static var bundledCompatibilityTestsURL: URL? {
-    Bundle.main.url(forResource: "CompatibilityTests", withExtension: nil)
+    CompatibilityTestResources.rootURL
   }
 
   private static var helperExecutableURL: URL {

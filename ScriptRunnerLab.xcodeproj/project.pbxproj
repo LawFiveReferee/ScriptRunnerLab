@@ -24,7 +24,6 @@
 		D294291E7A443CC463A87840 /* ScriptRunnerKit in Frameworks */ = {isa = PBXBuildFile; productRef = BF48A79C10198CEC6172A061 /* ScriptRunnerKit */; };
 		D6BEB20FEC93477D8437C5ED /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = C14E697A9096430638B55B0E /* App.swift */; };
 		E3912497A81018AF5545EE74 /* ScriptRunnerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91515B6EE107BEFF844756D /* ScriptRunnerModel.swift */; };
-		F66C2E5021BB52D47162FF21 /* CompatibilityTests in Resources */ = {isa = PBXBuildFile; fileRef = 3144B5032362981D67B15EC7 /* CompatibilityTests */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,7 +52,6 @@
 
 /* Begin PBXFileReference section */
 		1C4F1EFED1B8439F5BF6C410 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		3144B5032362981D67B15EC7 /* CompatibilityTests */ = {isa = PBXFileReference; lastKnownFileType = folder; path = CompatibilityTests; sourceTree = "<group>"; };
 		35EA2D0810EAD34EAC0900A4 /* ScriptRunnerLabHelper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScriptRunnerLabHelper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E40851872F8043D76B08A25 /* ScriptExecutionStatus+View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ScriptExecutionStatus+View.swift"; sourceTree = "<group>"; };
 		4EF4E1F946347F7F3AFC0111 /* FavoriteScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteScript.swift; sourceTree = "<group>"; };
@@ -137,7 +135,6 @@
 			isa = PBXGroup;
 			children = (
 				507388474EA53CD97E1B8076 /* App */,
-				3144B5032362981D67B15EC7 /* CompatibilityTests */,
 				1786E8E4DC3D9548BC47FEFD /* Helper */,
 				89BB753A02D3C0E3CCDFA9B4 /* Packages */,
 				24CEAC5E4604A4C669D6CE5F /* Products */,
@@ -236,7 +233,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				0438CB241887181BECA262AB /* Assets.xcassets in Resources */,
-				F66C2E5021BB52D47162FF21 /* CompatibilityTests in Resources */,
 				90A1B2C3D4E5F60718293A4B /* ScriptRunnerLab.sdef in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -286,7 +282,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				INFOPLIST_FILE = Helper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -307,7 +303,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -326,7 +322,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				INFOPLIST_FILE = Helper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -347,7 +343,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

@@ -12,6 +12,20 @@ final class CompatibilitySuiteTests: XCTestCase {
     )
   }
 
+  func testEveryBaselineFixtureIsAvailableFromPackageResources() throws {
+    let rootURL = try XCTUnwrap(CompatibilityTestResources.rootURL)
+    for test in CompatibilityTestDefinition.all {
+      XCTAssertTrue(
+        FileManager.default.fileExists(atPath: rootURL.appending(path: test.relativePath).path),
+        "Missing packaged fixture: \(test.relativePath)"
+      )
+    }
+    let appletExecutableURL = rootURL.appending(
+      path: "Artifacts/BasicReturnApplet.app/Contents/MacOS/applet"
+    )
+    XCTAssertTrue(FileManager.default.isExecutableFile(atPath: appletExecutableURL.path))
+  }
+
   func testPortableSummaryRoundTripsAndFormatsHostDetails() throws {
     let automaticTest = makeTest(path: "Pass.applescript", expectedSource: "1")
     let deferredTest = CompatibilityTestDefinition(

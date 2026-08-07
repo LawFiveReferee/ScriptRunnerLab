@@ -72,7 +72,7 @@ An AppleScriptable host adds its own commands to its SDEF and forwards them to t
 
 ## Compatibility suite
 
-Embed the repository's `CompatibilityTests` folder and pass its bundle URL to `executeCompatibilitySuite`. The default manifest supplies the same automatic tests and assertions used by ScriptRunnerLab. Start, progress, and completion callbacks allow the host to build its own live test interface; the returned report contains ordered per-test results and completion state.
+The package embeds the complete baseline fixture set. Pass `CompatibilityTestResources.rootURL` to `executeCompatibilitySuite`; no separate resource-copy phase is required in the host. The default manifest supplies the same automatic tests and assertions used by ScriptRunnerLab. Start, progress, and completion callbacks allow the host to build its own live test interface; the returned report contains ordered per-test results and completion state.
 
 Manual and optional definitions are available through `CompatibilityTestDefinition.deferredTests`. Hosts decide how and when to present those permission-sensitive, interactive, or third-party tests.
 
