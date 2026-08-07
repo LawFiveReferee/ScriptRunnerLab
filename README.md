@@ -16,6 +16,7 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 - Shares Codable ordered collection reports and formatting through `ScriptRunnerKit`
 - Uses ScriptRunnerKit's configurable isolated helper launcher for timeout, cancellation, and progress transport
 - Uses ScriptRunnerKit's shared recursive discovery and sequential collection runner
+- Uses ScriptRunnerKit's host-neutral interactive sequence for repeat, advance, quit, and ordered results
 - Reports structured AppleScript errors, source ranges, raw results, duration, UTI, and architecture
 - Displays results as AE Print or AppleScript source
 - Opens scripts in the user's default editor
@@ -59,7 +60,7 @@ OSAKit does not publicly expose AppleScript's four built-in progress values to h
 
 ## Next milestone
 
-Expand result assertions beyond success and error classification, then add controlled opt-in runs for interactive tests.
+Document and validate embedding ScriptRunnerKit and ScriptRunnerHelper in a second host application.
 
 ## Scope
 

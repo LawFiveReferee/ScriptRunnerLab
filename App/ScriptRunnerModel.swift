@@ -37,10 +37,10 @@ final class ScriptRunnerModel {
   private var executionTask: Task<Void, Never>?
   private var scriptsFolderAccessURL: URL?
   private var scriptsFolderMonitors: [DispatchSourceFileSystemObject] = []
-  private var scriptedEntries: [ScriptFolderEntry] = []
-  private var scriptedEntryIndex = 0
-  private var scriptedDirectoryURL: URL?
   private var scriptedAutomaticCompletion: ((String) -> Void)?
+  private var isRunningScriptCollection = false
+  @ObservationIgnored private var scriptedInteractiveContinuation:
+    CheckedContinuation<ScriptCollectionInteractiveAction, Never>?
 
   init() {
     let executionLogURL = Self.defaultExecutionLogURL
@@ -244,7 +244,7 @@ final class ScriptRunnerModel {
     mode: ScriptCollectionExecutionMode,
     completion: ((String) -> Void)? = nil
   ) -> Bool {
-    guard !isRunning else {
+    guard !isRunning, !isRunningScriptCollection else {
       showLocalError("A script execution is already in progress.")
       return false
     }
@@ -253,42 +253,29 @@ final class ScriptRunnerModel {
       showLocalError("No supported scripts were found in the specified directory.")
       return false
     }
-    scriptedEntries = entries
-    scriptedDirectoryURL = directoryURL
-    scriptedEntryIndex = 0
     scriptedInteractivePrompt = nil
     scriptCollectionReport = nil
     scriptedAutomaticCompletion = completion
+    isRunningScriptCollection = true
     switch mode {
     case .automatically:
-      runScriptedDirectoryAutomatically()
+      runScriptedDirectoryAutomatically(directoryURL: directoryURL)
     case .interactively:
-      runCurrentScriptedInteractiveEntry()
+      runScriptedDirectoryInteractively(directoryURL: directoryURL)
     }
     return true
   }
 
   func repeatScriptedInteractiveScript() {
-    scriptedInteractivePrompt = nil
-    runCurrentScriptedInteractiveEntry()
+    resolveScriptedInteractivePrompt(with: .runAgain)
   }
 
   func advanceScriptedInteractiveRun() {
-    scriptedInteractivePrompt = nil
-    scriptedEntryIndex += 1
-    guard scriptedEntryIndex < scriptedEntries.count else {
-      finishScriptedDirectoryRun()
-      return
-    }
-    runCurrentScriptedInteractiveEntry()
+    resolveScriptedInteractivePrompt(with: .runNext)
   }
 
   func quitScriptedInteractiveRun() {
-    scriptedInteractivePrompt = nil
-    scriptedEntries = []
-    scriptedDirectoryURL = nil
-    scriptedEntryIndex = 0
-    status = .cancelled
+    resolveScriptedInteractivePrompt(with: .quit)
   }
 
   func refreshScriptsFolder() {
@@ -550,8 +537,12 @@ final class ScriptRunnerModel {
 
   func cancel() {
     guard isRunning else { return }
-    executionTask?.cancel()
-    helperRunner.cancel()
+    if isRunningScriptCollection {
+      collectionRunner.cancel()
+    } else {
+      executionTask?.cancel()
+      helperRunner.cancel()
+    }
   }
 
   func revealScript() {
@@ -716,8 +707,7 @@ final class ScriptRunnerModel {
     return "Assertion mismatch: " + failures.joined(separator: "; ") + "."
   }
 
-  private func runScriptedDirectoryAutomatically() {
-    guard let directoryURL = scriptedDirectoryURL else { return }
+  private func runScriptedDirectoryAutomatically(directoryURL: URL) {
     let timeout = scriptedExecutionTimeout
     isRunning = true
     status = .running
@@ -745,11 +735,14 @@ final class ScriptRunnerModel {
       showLocalError(error.localizedDescription)
       scriptedAutomaticCompletion?(error.localizedDescription)
       scriptedAutomaticCompletion = nil
+      isRunningScriptCollection = false
       executionTask = nil
       return
     }
     isRunning = false
-    status = Task.isCancelled ? .cancelled : (report.succeeded ? .completed : .failed)
+    status = report.entries.last?.result.status == .cancelled
+      ? .cancelled
+      : (report.succeeded ? .completed : .failed)
     scriptCollectionReport = report
     result = ScriptExecutionResult(
       requestID: UUID(),
@@ -766,9 +759,7 @@ final class ScriptRunnerModel {
     )
     scriptedAutomaticCompletion?(report.text)
     scriptedAutomaticCompletion = nil
-    scriptedEntries = []
-    scriptedDirectoryURL = nil
-    scriptedEntryIndex = 0
+    isRunningScriptCollection = false
     executionTask = nil
   }
 
@@ -791,71 +782,68 @@ final class ScriptRunnerModel {
     await recordExecution(descriptor: item.descriptor, result: executionResult)
   }
 
-  private func runCurrentScriptedInteractiveEntry() {
-    guard scriptedEntries.indices.contains(scriptedEntryIndex) else {
-      finishScriptedDirectoryRun()
-      return
-    }
-    let entry = scriptedEntries[scriptedEntryIndex]
-    descriptor = entry.descriptor
+  private func runScriptedDirectoryInteractively(directoryURL: URL) {
+    let timeout = scriptedExecutionTimeout
     isRunning = true
     status = .running
     result = nil
-    executedScriptPaths.insert(Self.scriptIdentity(for: entry.url))
     executionTask = Task { [weak self] in
       guard let self else { return }
-      let executionResult = await executeScriptedEntry(entry)
-      result = executionResult
-      status = executionResult.status
+      do {
+        let outcome = try await collectionRunner.executeInteractively(
+          directoryURL: directoryURL,
+          timeout: timeout,
+          itemStarted: collectionItemStarted,
+          progressHandler: collectionProgressReceived,
+          itemCompleted: interactiveCollectionItemCompleted,
+          actionProvider: scriptedInteractiveAction
+        )
+        scriptCollectionReport = outcome.report
+        status = outcome.completion == .quit
+          ? .cancelled
+          : (outcome.report.succeeded ? .completed : .failed)
+      } catch {
+        showLocalError(error.localizedDescription)
+      }
       isRunning = false
-      await recordExecution(descriptor: entry.descriptor, result: executionResult)
-      let nextName = scriptedEntries.indices.contains(scriptedEntryIndex + 1)
-        ? scriptedEntries[scriptedEntryIndex + 1].descriptor.displayName
-        : nil
-      scriptedInteractivePrompt = ScriptedInteractivePrompt(
-        scriptName: entry.descriptor.displayName,
-        resultText: outputText(for: .source),
-        nextScriptName: nextName
-      )
+      isRunningScriptCollection = false
       executionTask = nil
     }
   }
 
-  private func executeScriptedEntry(_ entry: ScriptFolderEntry) async -> ScriptExecutionResult {
-    let startedAt = Date()
-    let request: ScriptExecutionRequest
-    do {
-      request = try ScriptExecutionRequest(scriptURL: entry.url)
-    } catch {
-      return .failure(
-        requestID: UUID(),
-        message: "The script could not be prepared. \(error.localizedDescription)",
-        startedAt: startedAt
-      )
-    }
-    do {
-      return try await helperRunner.execute(request: request, timeout: scriptedExecutionTimeout) { [weak self] snapshot in
-        self?.scriptProgress = snapshot
-      }
-    } catch let error as ScriptHelperProcessError {
-      return .failure(
-        requestID: request.requestID,
-        status: Self.executionStatus(for: error),
-        message: error.localizedDescription,
-        startedAt: startedAt
-      )
-    } catch {
-      return .failure(requestID: request.requestID, message: error.localizedDescription, startedAt: startedAt)
+  private func interactiveCollectionItemCompleted(
+    _ item: ScriptCollectionItem,
+    _ executionResult: ScriptExecutionResult
+  ) async {
+    result = executionResult
+    status = executionResult.status
+    isRunning = false
+    await recordExecution(descriptor: item.descriptor, result: executionResult)
+  }
+
+  private func scriptedInteractiveAction(
+    _ step: ScriptCollectionInteractiveStep
+  ) async -> ScriptCollectionInteractiveAction {
+    scriptedInteractivePrompt = ScriptedInteractivePrompt(
+      scriptName: step.item.descriptor.displayName,
+      resultText: outputText(for: .source),
+      nextScriptName: step.nextItem?.descriptor.displayName
+    )
+    return await withCheckedContinuation { continuation in
+      scriptedInteractiveContinuation = continuation
     }
   }
 
-  private func finishScriptedDirectoryRun() {
+  private func resolveScriptedInteractivePrompt(with action: ScriptCollectionInteractiveAction) {
     scriptedInteractivePrompt = nil
-    scriptedEntries = []
-    scriptedDirectoryURL = nil
-    scriptedEntryIndex = 0
-    isRunning = false
-    status = .completed
+    let continuation = scriptedInteractiveContinuation
+    scriptedInteractiveContinuation = nil
+    continuation?.resume(returning: action)
+    if action != .quit {
+      isRunning = true
+      status = .running
+      result = nil
+    }
   }
 
   private var scriptedExecutionTimeout: TimeInterval {
