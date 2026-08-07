@@ -295,8 +295,6 @@ final class ScriptRunnerModel {
     status = .running
     result = nil
     scriptProgress = nil
-    compatibilitySuiteStartedAt = Date()
-    compatibilitySuiteCompletedAt = nil
     let startedAt = Date()
 
     executionTask = Task { [weak self] in
@@ -359,6 +357,8 @@ final class ScriptRunnerModel {
     status = .running
     result = nil
     scriptProgress = nil
+    compatibilitySuiteStartedAt = Date()
+    compatibilitySuiteCompletedAt = nil
 
     executionTask = Task { [weak self] in
       guard let self else { return }
