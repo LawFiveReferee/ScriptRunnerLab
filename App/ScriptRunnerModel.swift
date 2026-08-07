@@ -30,6 +30,7 @@ final class ScriptRunnerModel {
   var compatibilitySuiteCompletedAt: Date?
   var scriptedInteractivePrompt: ScriptedInteractivePrompt?
   var scriptCollectionReport: ScriptCollectionExecutionReport?
+  var favoriteRepairRequest: FavoriteRepairRequest?
 
   private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
   private let runnerService: ScriptRunnerService
@@ -204,6 +205,32 @@ final class ScriptRunnerModel {
     }
   }
 
+  func receiveFavoriteRepairSelection(
+    _ selection: Result<[URL], any Error>,
+    favoriteID: UUID
+  ) {
+    do {
+      guard let url = try selection.get().first else { return }
+      let descriptor = ScriptDescriptor(url: url)
+      guard descriptor.scriptType != .unsupported else {
+        showLocalError("The selected item is not a supported AppleScript file or applet.")
+        return
+      }
+
+      let accessed = url.startAccessingSecurityScopedResource()
+      defer {
+        if accessed {
+          url.stopAccessingSecurityScopedResource()
+        }
+      }
+      try favoriteStore.replace(id: favoriteID, with: descriptor)
+      favoriteRepairRequest = nil
+      selectFavorite(id: favoriteID)
+    } catch {
+      showLocalError("This favorite could not be repaired. \(error.localizedDescription)")
+    }
+  }
+
   func receiveDroppedURLs(_ urls: [URL]) -> Bool {
     guard let url = urls.first(where: Self.isScriptURL) else { return false }
     selectScript(at: url)
@@ -316,7 +343,12 @@ final class ScriptRunnerModel {
       result = nil
       status = .ready
     } catch {
-      showLocalError("This favorite could not be opened. Choose the script again to restore access. \(error.localizedDescription)")
+      let favoriteName = favorites.first(where: { $0.id == id })?.displayName ?? "Favorite"
+      favoriteRepairRequest = FavoriteRepairRequest(
+        favoriteID: id,
+        displayName: favoriteName,
+        reason: error.localizedDescription
+      )
     }
   }
 
@@ -852,4 +884,14 @@ final class ScriptRunnerModel {
       .appending(path: "ScriptExecutionLog.jsonl", directoryHint: .notDirectory)
   }
 
+}
+
+struct FavoriteRepairRequest: Identifiable {
+  var favoriteID: UUID
+  var displayName: String
+  var reason: String
+
+  var id: UUID {
+    favoriteID
+  }
 }

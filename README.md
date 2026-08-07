@@ -24,6 +24,7 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 - Uses ScriptRunnerKit's reusable capability analyzer for Favorites compatibility tags
 - Uses ScriptRunnerKit's reusable security-scoped Favorite script records
 - Uses ScriptRunnerKit's reusable Favorites store for persistence, bookmark refresh, and repair
+- Offers to locate and repair a Favorite when its stored bookmark no longer resolves
 - Reports structured AppleScript errors, source ranges, raw results, duration, UTI, and architecture
 - Displays results as AE Print or AppleScript source
 - Opens scripts in the user's default editor
@@ -69,7 +70,7 @@ OSAKit does not publicly expose AppleScript's four built-in progress values to h
 
 ## Next milestone
 
-Add an in-app repair flow that lets users reselect a moved Favorite while preserving its collection entry.
+Add a reusable execution-log reader and an in-app history browser suitable for ScriptRunnerLab and other hosts.
 
 ## Scope
 

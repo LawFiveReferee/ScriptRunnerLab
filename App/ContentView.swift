@@ -57,6 +57,8 @@ struct ContentView: View {
           runner.receiveSelection(result)
         case .scriptsFolder:
           runner.receiveFolderSelection(result)
+        case .favoriteRepair(let id):
+          runner.receiveFavoriteRepairSelection(result, favoriteID: id)
         }
       }
       .onChange(of: runner.scriptProgress) { _, progress in
@@ -75,6 +77,28 @@ struct ContentView: View {
       }
       .sheet(item: $runner.scriptedInteractivePrompt) { prompt in
         scriptedInteractiveResultSheet(prompt)
+      }
+      .alert(
+        "Favorite Needs Repair",
+        isPresented: Binding(
+          get: { runner.favoriteRepairRequest != nil },
+          set: { isPresented in
+            if !isPresented {
+              runner.favoriteRepairRequest = nil
+            }
+          }
+        ),
+        presenting: runner.favoriteRepairRequest
+      ) { request in
+        Button("Locate Script…") {
+          runner.favoriteRepairRequest = nil
+          presentImporter(for: .favoriteRepair(request.favoriteID))
+        }
+        Button("Cancel", role: .cancel) {
+          runner.favoriteRepairRequest = nil
+        }
+      } message: { request in
+        Text("“\(request.displayName)” could not be opened. Locate the moved script to preserve this Favorite entry.\n\n\(request.reason)")
       }
     }
   }
@@ -631,10 +655,11 @@ struct ContentView: View {
 private enum ImporterPurpose {
   case script
   case scriptsFolder
+  case favoriteRepair(UUID)
 
   var allowedContentTypes: [UTType] {
     switch self {
-    case .script: [.item]
+    case .script, .favoriteRepair: [.item]
     case .scriptsFolder: [.folder]
     }
   }

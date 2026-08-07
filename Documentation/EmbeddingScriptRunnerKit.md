@@ -78,6 +78,8 @@ Use `ScriptCapability.detect(in:)` to build host-neutral compatibility tags for 
 
 For a complete collection, create `FavoriteScriptStore(defaults:storageKey:)`. The observable store loads the existing JSON representation, prevents duplicates, keeps entries sorted, and persists additions and removals. `resolveAndRefresh(id:)` resolves access and refreshes the bookmark, path, type, and capability metadata without changing the entry ID. If resolution fails, use `replace(id:with:)` after the user reselects the moved script.
 
+ScriptRunnerLab demonstrates the repair presentation: catch a failed resolution, identify the affected entry, let the user choose a replacement with a file importer, validate its `ScriptDescriptor`, and pass it to `replace(id:with:)`. The host owns this prompt so it can use a sheet, alert, or independent UpDock-style window.
+
 ## Collections
 
 Use `executeAutomatically` for recursive sorted execution. Use `executeInteractively` when the host wants to present each result and return `.runAgain`, `.runNext`, or `.quit` from its own UI. Both APIs use one helper process per script and write every result to the configured log.

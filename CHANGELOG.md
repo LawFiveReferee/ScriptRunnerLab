@@ -3,21 +3,29 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 30
+- Build: 31
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 30
+### Build 31
+
+- Added an in-app repair prompt when a Favorite bookmark can no longer resolve.
+- The prompt identifies the affected script and preserves the underlying resolution error for diagnosis.
+- Locate Script lets the user choose a moved or replacement script and repairs the existing Favorite in place.
+- Repair preserves the Favorite ID while refreshing its bookmark, name, path, type, extension, and capability tags.
+- Unsupported replacement items are rejected without changing the Favorite.
+
+## Build history
+
+### Version 1.0, build 30
 
 - Added a reusable FavoriteScriptStore to ScriptRunnerKit with configurable UserDefaults storage.
 - Centralized Favorite loading, duplicate prevention, sorting, persistence, removal, bookmark resolution, and metadata refresh.
 - Added in-place record replacement so hosts can restore a stale or broken Favorite while preserving its ID.
 - Migrated ScriptRunnerLab to the shared store without changing its existing Favorites data or interface.
 - Added regression tests for stored-data loading, persistence, ordering, duplicate handling, resolution, refresh, and repair.
-
-## Build history
 
 ### Version 1.0, build 29
 
