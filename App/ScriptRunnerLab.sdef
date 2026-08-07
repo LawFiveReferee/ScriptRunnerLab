@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+<dictionary title="Script Runner Lab Terminology">
+  <suite name="Script Runner Lab Suite" code="SRLB" description="Commands for executing AppleScript collections.">
+    <command name="execute scripts automatically in" code="SRLBExSc" description="Execute supported scripts found recursively in a directory without pausing.">
+      <direct-parameter type="file" description="The directory containing scripts."/>
+      <result type="text" description="Confirmation that the execution request was accepted."/>
+      <cocoa class="ExecuteScriptsCommand"/>
+    </command>
+    <command name="execute scripts interactively in" code="SRLBInSc" description="Execute supported scripts and prompt after each result.">
+      <direct-parameter type="file" description="The directory containing scripts."/>
+      <result type="text" description="Confirmation that the execution request was accepted."/>
+      <cocoa class="ExecuteScriptsCommand"/>
+    </command>
+  </suite>
+</dictionary>
