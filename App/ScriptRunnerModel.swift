@@ -31,9 +31,7 @@ final class ScriptRunnerModel {
 
   private static let favoritesKey = "favoriteScripts"
   private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
-  private let helperRunner: ScriptHelperProcessRunner
-  private let collectionRunner: ScriptCollectionRunner
-  private let executionLogWriter: ScriptExecutionLogWriter
+  private let runnerService: ScriptRunnerService
   private var executionTask: Task<Void, Never>?
   private var scriptsFolderAccessURL: URL?
   private var scriptsFolderMonitors: [DispatchSourceFileSystemObject] = []
@@ -44,14 +42,15 @@ final class ScriptRunnerModel {
 
   init() {
     let executionLogURL = Self.defaultExecutionLogURL
-    let helperRunner = ScriptHelperProcessRunner(
-      helperExecutableURL: Self.helperExecutableURL,
-      workingDirectoryName: "ScriptRunnerLab"
+    self.runnerService = ScriptRunnerService(
+      configuration: .current(
+        helperExecutableURL: Self.helperExecutableURL,
+        workingDirectoryName: "ScriptRunnerLab",
+        logURL: executionLogURL,
+        displayNameFallback: "ScriptRunnerLab"
+      )
     )
-    self.helperRunner = helperRunner
-    self.collectionRunner = ScriptCollectionRunner(helperRunner: helperRunner)
     self.executionLogURL = executionLogURL
-    self.executionLogWriter = ScriptExecutionLogWriter(fileURL: executionLogURL)
     favorites = Self.loadFavorites()
     scriptsFolderURL = nil
     restoreScriptsFolder()
@@ -157,7 +156,7 @@ final class ScriptRunnerModel {
       "Isolation: ScriptRunnerHelper (one process per request)",
       "Sandbox: disabled",
       "macOS: \(ProcessInfo.processInfo.operatingSystemVersionString)",
-      "Architecture: \(architectureName)"
+      "Architecture: \(Self.currentArchitectureName)"
     ])
     if let descriptor {
       lines.append("Script type: \(descriptor.scriptType.displayName)")
@@ -347,68 +346,22 @@ final class ScriptRunnerModel {
   func run(timeout: TimeInterval) {
     guard let descriptor, canRun else { return }
     executedScriptPaths.insert(Self.scriptIdentity(for: descriptor.url))
-    let accessed = descriptor.url.startAccessingSecurityScopedResource()
-    defer {
-      if accessed {
-        descriptor.url.stopAccessingSecurityScopedResource()
-      }
-    }
-
-    let request: ScriptExecutionRequest
-    do {
-      request = try ScriptExecutionRequest(scriptURL: descriptor.url)
-    } catch {
-      showLocalError("The script could not be prepared for the helper. \(error.localizedDescription)")
-      if let result {
-        Task { await recordExecution(descriptor: descriptor, result: result) }
-      }
-      return
-    }
-
     isRunning = true
     status = .running
     result = nil
     scriptProgress = nil
-    let startedAt = Date()
 
     executionTask = Task { [weak self] in
       guard let self else { return }
-      do {
-        let executionResult = try await helperRunner.execute(
-          request: request,
-          timeout: timeout
-        ) { [weak self] snapshot in
-          self?.scriptProgress = snapshot
-        }
-        result = executionResult
-        status = executionResult.status
-        isRunning = false
-      } catch let error as ScriptHelperProcessError {
-        let failureStatus: ScriptExecutionStatus
-        switch error {
-        case .cancelled:
-          failureStatus = .cancelled
-        case .timedOut:
-          failureStatus = .timedOut
-        default:
-          failureStatus = .failed
-        }
-        showLocalError(
-          error.localizedDescription,
-          status: failureStatus,
-          requestID: request.requestID,
-          startedAt: startedAt
-        )
-      } catch {
-        showLocalError(
-          error.localizedDescription,
-          requestID: request.requestID,
-          startedAt: startedAt
-        )
+      let executionResult = await runnerService.execute(
+        scriptURL: descriptor.url,
+        timeout: timeout
+      ) { [weak self] snapshot in
+        self?.scriptProgress = snapshot
       }
-      if let result {
-        await recordExecution(descriptor: descriptor, result: result)
-      }
+      result = executionResult
+      status = executionResult.status
+      isRunning = false
       scriptProgress = nil
       executionTask = nil
     }
@@ -447,8 +400,6 @@ final class ScriptRunnerModel {
         currentCompatibilityTestName = test.displayName
         compatibilityResults[test.id] = .running
         let scriptURL = compatibilityTestsURL.appending(path: test.relativePath)
-        let descriptor = ScriptDescriptor(url: scriptURL)
-        let startedAt = Date()
         executedScriptPaths.insert(Self.scriptIdentity(for: scriptURL))
 
         guard FileManager.default.fileExists(atPath: scriptURL.path) else {
@@ -459,46 +410,19 @@ final class ScriptRunnerModel {
           continue
         }
 
-        let request: ScriptExecutionRequest
-        do {
-          request = try ScriptExecutionRequest(scriptURL: scriptURL)
-        } catch {
-          compatibilityResults[test.id] = CompatibilityTestResult(
-            state: .failed,
-            message: "The test request could not be prepared. \(error.localizedDescription)"
-          )
-          continue
+        let executionResult = await runnerService.execute(
+          scriptURL: scriptURL,
+          timeout: test.timeout
+        ) { [weak self] snapshot in
+          self?.scriptProgress = snapshot
         }
-
-        let executionResult: ScriptExecutionResult
-        do {
-          executionResult = try await helperRunner.execute(
-            request: request,
-            timeout: test.timeout
-          ) { [weak self] snapshot in
-            self?.scriptProgress = snapshot
-          }
-        } catch let error as ScriptHelperProcessError {
-          if case .cancelled = error, Task.isCancelled {
-            compatibilityResults[test.id] = CompatibilityTestResult(
-              state: .stopped,
-              message: "The suite was stopped."
-            )
-            wasStopped = true
-            break
-          }
-          executionResult = ScriptExecutionResult.failure(
-            requestID: request.requestID,
-            status: Self.executionStatus(for: error),
-            message: error.localizedDescription,
-            startedAt: startedAt
+        if executionResult.status == .cancelled, Task.isCancelled {
+          compatibilityResults[test.id] = CompatibilityTestResult(
+            state: .stopped,
+            message: "The suite was stopped."
           )
-        } catch {
-          executionResult = ScriptExecutionResult.failure(
-            requestID: request.requestID,
-            message: error.localizedDescription,
-            startedAt: startedAt
-          )
+          wasStopped = true
+          break
         }
 
         let expectationFailures = test.expectedOutcome?.failures(for: executionResult)
@@ -515,7 +439,6 @@ final class ScriptRunnerModel {
           ),
           duration: executionResult.executionDuration
         )
-        await recordExecution(descriptor: descriptor, result: executionResult)
         scriptProgress = nil
       }
 
@@ -538,10 +461,10 @@ final class ScriptRunnerModel {
   func cancel() {
     guard isRunning else { return }
     if isRunningScriptCollection {
-      collectionRunner.cancel()
+      runnerService.cancel()
     } else {
       executionTask?.cancel()
-      helperRunner.cancel()
+      runnerService.cancel()
     }
   }
 
@@ -584,7 +507,7 @@ final class ScriptRunnerModel {
     status = .ready
   }
 
-  private var architectureName: String {
+  private static var currentArchitectureName: String {
     #if arch(arm64)
     "Apple Silicon"
     #elseif arch(x86_64)
@@ -612,7 +535,7 @@ final class ScriptRunnerModel {
       "Isolation: ScriptRunnerHelper (one process per request)",
       "Sandbox: disabled",
       "macOS: \(ProcessInfo.processInfo.operatingSystemVersionString)",
-      "Architecture: \(architectureName)",
+      "Architecture: \(Self.currentArchitectureName)",
       "Execution log: \(executionLogURL.path(percentEncoded: false))",
       "Automatic tests: \(automaticCompatibilityTests.count)",
       "Content assertions: \(compatibilityContentAssertionCount)",
@@ -688,14 +611,6 @@ final class ScriptRunnerModel {
     isRunning = false
   }
 
-  private static func executionStatus(for error: ScriptHelperProcessError) -> ScriptExecutionStatus {
-    switch error {
-    case .cancelled: .cancelled
-    case .timedOut: .timedOut
-    default: .failed
-    }
-  }
-
   private func compatibilityMessage(
     for result: ScriptExecutionResult,
     expected: CompatibilityExpectedOutcome?,
@@ -724,12 +639,11 @@ final class ScriptRunnerModel {
   ) async {
     let report: ScriptCollectionExecutionReport
     do {
-      report = try await collectionRunner.execute(
+      report = try await runnerService.executeAutomatically(
         directoryURL: directoryURL,
         timeout: timeout,
         itemStarted: collectionItemStarted,
-        progressHandler: collectionProgressReceived,
-        itemCompleted: collectionItemCompleted
+        progressHandler: collectionProgressReceived
       )
     } catch {
       showLocalError(error.localizedDescription)
@@ -775,13 +689,6 @@ final class ScriptRunnerModel {
     scriptProgress = snapshot
   }
 
-  private func collectionItemCompleted(
-    _ item: ScriptCollectionItem,
-    _ executionResult: ScriptExecutionResult
-  ) async {
-    await recordExecution(descriptor: item.descriptor, result: executionResult)
-  }
-
   private func runScriptedDirectoryInteractively(directoryURL: URL) {
     let timeout = scriptedExecutionTimeout
     isRunning = true
@@ -790,7 +697,7 @@ final class ScriptRunnerModel {
     executionTask = Task { [weak self] in
       guard let self else { return }
       do {
-        let outcome = try await collectionRunner.executeInteractively(
+        let outcome = try await runnerService.executeInteractively(
           directoryURL: directoryURL,
           timeout: timeout,
           itemStarted: collectionItemStarted,
@@ -818,7 +725,6 @@ final class ScriptRunnerModel {
     result = executionResult
     status = executionResult.status
     isRunning = false
-    await recordExecution(descriptor: item.descriptor, result: executionResult)
   }
 
   private func scriptedInteractiveAction(
@@ -1010,35 +916,6 @@ final class ScriptRunnerModel {
 
   private static func scriptIdentity(for url: URL) -> String {
     url.standardizedFileURL.path(percentEncoded: false)
-  }
-
-  private func recordExecution(descriptor: ScriptDescriptor, result: ScriptExecutionResult) async {
-    let bundle = Bundle.main
-    let entry = ScriptExecutionLogEntry(
-      host: .init(
-        name: bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "ScriptRunnerLab",
-        bundleIdentifier: bundle.bundleIdentifier,
-        version: bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
-        build: bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String
-      ),
-      script: .init(
-        name: descriptor.displayName,
-        path: descriptor.url.path(percentEncoded: false),
-        fileExtension: descriptor.fileExtension,
-        typeIdentifier: descriptor.typeIdentifier,
-        scriptType: descriptor.scriptType,
-        isPackage: descriptor.isPackage
-      ),
-      environment: .init(
-        operatingSystem: ProcessInfo.processInfo.operatingSystemVersionString,
-        architecture: architectureName,
-        isSandboxed: false,
-        isolation: "ScriptRunnerHelper (one process per request)"
-      ),
-      engine: descriptor.scriptType == .appleScriptApplet ? .nsWorkspaceApplet : .osaKit,
-      result: result
-    )
-    try? await executionLogWriter.append(entry)
   }
 
   private static var defaultExecutionLogURL: URL {

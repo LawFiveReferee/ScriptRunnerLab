@@ -17,6 +17,7 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 - Uses ScriptRunnerKit's configurable isolated helper launcher for timeout, cancellation, and progress transport
 - Uses ScriptRunnerKit's shared recursive discovery and sequential collection runner
 - Uses ScriptRunnerKit's host-neutral interactive sequence for repeat, advance, quit, and ordered results
+- Uses ScriptRunnerService as the shared host API for execution, collections, cancellation, progress, and logging
 - Reports structured AppleScript errors, source ranges, raw results, duration, UTI, and architecture
 - Displays results as AE Print or AppleScript source
 - Opens scripts in the user's default editor
@@ -30,6 +31,8 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 Open the project in Bitrig or Xcode, build `ScriptRunnerLab`, choose a script, and select **Run**.
 
 The app is intentionally not sandboxed. macOS privacy controls still apply, so scripts that automate other applications can trigger Automation permission prompts.
+
+Other macOS applications can adopt the same engine through [the ScriptRunnerKit embedding guide](Documentation/EmbeddingScriptRunnerKit.md).
 
 ## AppleScript commands
 
@@ -60,7 +63,7 @@ OSAKit does not publicly expose AppleScript's four built-in progress values to h
 
 ## Next milestone
 
-Document and validate embedding ScriptRunnerKit and ScriptRunnerHelper in a second host application.
+Move compatibility-test definitions and assertion orchestration into ScriptRunnerKit for reuse by additional hosts.
 
 ## Scope
 

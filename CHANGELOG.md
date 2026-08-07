@@ -3,21 +3,29 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 22
+- Build: 23
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 22
+### Build 23
+
+- Added ScriptRunnerService as the supported host entry point for isolated execution, collections, cancellation, progress, and JSON-lines logging.
+- Added host configuration that records the embedding application's identity and current execution environment.
+- Migrated ScriptRunnerLab's single runs, compatibility suite, and collection runs to the same service intended for UpDock.
+- Added an embedding guide covering the package, Cocoa helper target, signing, service setup, collections, and AppleScript commands.
+- Added service regression coverage for structured execution and host-specific log output.
+
+## Build history
+
+### Version 1.0, build 22
 
 - Added reusable interactive collection sequencing to ScriptRunnerKit.
 - Hosts provide their own result presentation while shared code manages Run Again, Run Next, Finish, and Quit decisions.
 - Interactive reports preserve every execution result, including repeated runs, in execution order.
 - Collection cancellation now targets the current isolated helper without discarding the interactive session.
 - Added package regression coverage for repeat, advance, completion, and ordered interactive results.
-
-## Build history
 
 ### Version 1.0, build 21
 
