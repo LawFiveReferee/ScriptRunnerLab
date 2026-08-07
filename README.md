@@ -38,7 +38,7 @@ tell application "Script Runner Lab"
 end tell
 ```
 
-Automatic execution runs every supported script in sorted order. Interactive execution shows each result and the next script name, with Run Again, Run Next or Finish, and Quit controls. Commands return immediately after the request is accepted; execution remains isolated and is recorded in the shared log.
+Automatic execution runs every supported script in sorted order and returns a combined report with each result following its relative script name. Interactive execution shows each result and the next script name, with Run Again, Run Next or Finish, and Quit controls. Interactive requests return after acceptance; automatic requests return their report after execution finishes. Execution remains isolated and is recorded in the shared log.
 
 ## Compatibility scripts
 

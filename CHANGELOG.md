@@ -3,20 +3,26 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 17
+- Build: 18
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 17
+### Build 18
+
+- Automatic AppleScript collection commands now return and display every script result.
+- Each result follows its relative script name and includes structured failure details when applicable.
+- Automatic Apple events suspend and resume asynchronously so the app stays responsive during execution.
+
+## Build history
+
+### Version 1.0, build 17
 
 - Made ScriptRunnerLab AppleScriptable with a bundled SDEF scripting dictionary.
 - Added automatic and interactive recursive script-collection commands.
 - Added an interactive result sheet with Run Again, Run Next or Finish, and Quit.
 - Scripted collection runs use the selected timeout, isolated helper, execution UI, and shared log.
-
-## Build history
 
 ### Version 1.0, build 16
 

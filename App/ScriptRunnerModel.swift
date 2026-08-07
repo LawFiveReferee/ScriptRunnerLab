@@ -37,6 +37,7 @@ final class ScriptRunnerModel {
   private var scriptsFolderMonitors: [DispatchSourceFileSystemObject] = []
   private var scriptedEntries: [ScriptFolderEntry] = []
   private var scriptedEntryIndex = 0
+  private var scriptedAutomaticCompletion: ((String) -> Void)?
 
   init() {
     let executionLogURL = Self.defaultExecutionLogURL
@@ -228,25 +229,32 @@ final class ScriptRunnerModel {
     run(timeout: timeout)
   }
 
-  func executeScripts(in directoryURL: URL, mode: ScriptDirectoryExecutionMode) {
+  @discardableResult
+  func executeScripts(
+    in directoryURL: URL,
+    mode: ScriptDirectoryExecutionMode,
+    completion: ((String) -> Void)? = nil
+  ) -> Bool {
     guard !isRunning else {
       showLocalError("A script execution is already in progress.")
-      return
+      return false
     }
     let entries = Self.scriptEntries(in: directoryURL).filter { $0.descriptor.scriptType != .unsupported }
     guard !entries.isEmpty else {
       showLocalError("No supported scripts were found in the specified directory.")
-      return
+      return false
     }
     scriptedEntries = entries
     scriptedEntryIndex = 0
     scriptedInteractivePrompt = nil
+    scriptedAutomaticCompletion = completion
     switch mode {
     case .automatically:
       runScriptedDirectoryAutomatically()
     case .interactively:
       runCurrentScriptedInteractiveEntry()
     }
+    return true
   }
 
   func repeatScriptedInteractiveScript() {
@@ -700,20 +708,39 @@ final class ScriptRunnerModel {
     isRunning = true
     status = .running
     result = nil
+    let batchStartedAt = Date()
     executionTask = Task { [weak self] in
       guard let self else { return }
       var encounteredFailure = false
+      var sections: [String] = []
       for entry in scriptedEntries {
         if Task.isCancelled { break }
         descriptor = entry.descriptor
         executedScriptPaths.insert(Self.scriptIdentity(for: entry.url))
         let executionResult = await executeScriptedEntry(entry)
-        result = executionResult
+        sections.append(scriptedResultSection(for: entry, result: executionResult))
         encounteredFailure = encounteredFailure || executionResult.status != .completed
         await recordExecution(descriptor: entry.descriptor, result: executionResult)
       }
       isRunning = false
       status = Task.isCancelled ? .cancelled : (encounteredFailure ? .failed : .completed)
+      let report = sections.joined(separator: "\n\n")
+      let completedAt = Date()
+      result = ScriptExecutionResult(
+        requestID: UUID(),
+        status: .completed,
+        sourceResultDescription: report,
+        rawResultDescription: report,
+        errorNumber: nil,
+        errorMessage: nil,
+        errorBriefMessage: nil,
+        errorRange: nil,
+        executionDuration: completedAt.timeIntervalSince(batchStartedAt),
+        startedAt: batchStartedAt,
+        completedAt: completedAt
+      )
+      scriptedAutomaticCompletion?(report)
+      scriptedAutomaticCompletion = nil
       scriptedEntries = []
       scriptedEntryIndex = 0
       executionTask = nil
@@ -776,6 +803,28 @@ final class ScriptRunnerModel {
     } catch {
       return .failure(requestID: request.requestID, message: error.localizedDescription, startedAt: startedAt)
     }
+  }
+
+  private func scriptedResultSection(
+    for entry: ScriptFolderEntry,
+    result: ScriptExecutionResult
+  ) -> String {
+    let value: String
+    if result.status == .completed {
+      value = result.sourceResultDescription
+        ?? result.rawResultDescription
+        ?? "Script completed without a result."
+    } else {
+      var errorLines = [result.status.displayName]
+      if let message = result.errorMessage ?? result.errorBriefMessage {
+        errorLines.append(message)
+      }
+      if let errorNumber = result.errorNumber {
+        errorLines.append("Error number: \(errorNumber)")
+      }
+      value = errorLines.joined(separator: "\n")
+    }
+    return "\(entry.relativePath)\n\(value)"
   }
 
   private func finishScriptedDirectoryRun() {

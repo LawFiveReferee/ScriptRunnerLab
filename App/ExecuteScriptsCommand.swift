@@ -19,12 +19,31 @@ final class ExecuteScriptsCommand: NSScriptCommand {
     }
 
     let mode = executionMode()
+    if mode == .automatically {
+      suspendExecution()
+      Task { @MainActor [weak self] in
+        guard let self else { return }
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        NSApplication.shared.windows.first?.makeKeyAndOrderFront(nil)
+        let accepted = ScriptRunnerModel.shared.executeScripts(
+          in: directoryURL,
+          mode: mode
+        ) { [weak self] report in
+          self?.resumeExecution(withResult: report)
+        }
+        if !accepted {
+          resumeExecution(withResult: "The execution request could not be started.")
+        }
+      }
+      return nil
+    }
+
     Task { @MainActor in
       NSApplication.shared.activate(ignoringOtherApps: true)
       NSApplication.shared.windows.first?.makeKeyAndOrderFront(nil)
       ScriptRunnerModel.shared.executeScripts(in: directoryURL, mode: mode)
     }
-    return "Accepted \(mode.rawValue) execution request for \(directoryURL.path)."
+    return "Accepted interactive execution request for \(directoryURL.path)."
   }
 
   private func directoryURL() -> URL? {
