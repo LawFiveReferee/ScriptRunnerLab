@@ -3,19 +3,26 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 19
+- Build: 20
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 19
+### Build 20
+
+- Moved isolated helper-process launching into reusable ScriptRunnerKit.
+- Hosts now provide their embedded helper executable URL and temporary-work namespace.
+- Shared execution includes timeout, cancellation, forced termination, progress transport, and structured results.
+- Added a package regression test for missing-helper validation.
+
+## Build history
+
+### Version 1.0, build 19
 
 - Added reusable Codable collection-report, entry-result, and execution-mode models to ScriptRunnerKit.
 - ScriptRunnerLab now formats and returns automatic collection results through the shared package model.
 - Added package regression tests for result ordering, success/error formatting, and JSON round trips.
-
-## Build history
 
 ### Version 1.0, build 18
 

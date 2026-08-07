@@ -31,7 +31,7 @@ final class ScriptRunnerModel {
 
   private static let favoritesKey = "favoriteScripts"
   private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
-  private let helperRunner = HelperProcessRunner()
+  private let helperRunner: ScriptHelperProcessRunner
   private let executionLogWriter: ScriptExecutionLogWriter
   private var executionTask: Task<Void, Never>?
   private var scriptsFolderAccessURL: URL?
@@ -43,6 +43,10 @@ final class ScriptRunnerModel {
 
   init() {
     let executionLogURL = Self.defaultExecutionLogURL
+    helperRunner = ScriptHelperProcessRunner(
+      helperExecutableURL: Self.helperExecutableURL,
+      workingDirectoryName: "ScriptRunnerLab"
+    )
     self.executionLogURL = executionLogURL
     self.executionLogWriter = ScriptExecutionLogWriter(fileURL: executionLogURL)
     favorites = Self.loadFavorites()
@@ -389,7 +393,7 @@ final class ScriptRunnerModel {
         result = executionResult
         status = executionResult.status
         isRunning = false
-      } catch let error as HelperProcessError {
+      } catch let error as ScriptHelperProcessError {
         let failureStatus: ScriptExecutionStatus
         switch error {
         case .cancelled:
@@ -484,7 +488,7 @@ final class ScriptRunnerModel {
           ) { [weak self] snapshot in
             self?.scriptProgress = snapshot
           }
-        } catch let error as HelperProcessError {
+        } catch let error as ScriptHelperProcessError {
           if case .cancelled = error, Task.isCancelled {
             compatibilityResults[test.id] = CompatibilityTestResult(
               state: .stopped,
@@ -690,7 +694,7 @@ final class ScriptRunnerModel {
     isRunning = false
   }
 
-  private static func executionStatus(for error: HelperProcessError) -> ScriptExecutionStatus {
+  private static func executionStatus(for error: ScriptHelperProcessError) -> ScriptExecutionStatus {
     switch error {
     case .cancelled: .cancelled
     case .timedOut: .timedOut
@@ -808,7 +812,7 @@ final class ScriptRunnerModel {
       return try await helperRunner.execute(request: request, timeout: scriptedExecutionTimeout) { [weak self] snapshot in
         self?.scriptProgress = snapshot
       }
-    } catch let error as HelperProcessError {
+    } catch let error as ScriptHelperProcessError {
       return .failure(
         requestID: request.requestID,
         status: Self.executionStatus(for: error),
@@ -915,6 +919,12 @@ final class ScriptRunnerModel {
 
   private static var bundledCompatibilityTestsURL: URL? {
     Bundle.main.url(forResource: "CompatibilityTests", withExtension: nil)
+  }
+
+  private static var helperExecutableURL: URL {
+    Bundle.main.bundleURL.appending(
+      path: "Contents/Helpers/ScriptRunnerHelper.app/Contents/MacOS/ScriptRunnerHelper"
+    )
   }
 
   private static func scriptEntries(in folderURL: URL) -> [ScriptFolderEntry] {

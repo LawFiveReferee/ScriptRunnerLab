@@ -1,18 +1,37 @@
 import Darwin
 import Foundation
-import ScriptRunnerKit
 
 @MainActor
-final class HelperProcessRunner {
+public final class ScriptHelperProcessRunner {
   private var process: Process?
+  private var helperExecutableURL: URL
+  private var workingDirectoryRoot: URL
 
-  func execute(
+  public init(
+    helperExecutableURL: URL,
+    temporaryDirectory: URL = FileManager.default.temporaryDirectory,
+    workingDirectoryName: String = "ScriptRunnerKit"
+  ) {
+    self.helperExecutableURL = helperExecutableURL
+    self.workingDirectoryRoot = temporaryDirectory.appending(
+      path: workingDirectoryName,
+      directoryHint: .isDirectory
+    )
+  }
+
+  public func execute(
     request: ScriptExecutionRequest,
     timeout: TimeInterval,
-    progressHandler: @escaping (ScriptProgressSnapshot) -> Void
+    progressHandler: @escaping (ScriptProgressSnapshot) -> Void = { _ in }
   ) async throws -> ScriptExecutionResult {
-    let workingDirectory = FileManager.default.temporaryDirectory
-      .appending(path: "ScriptRunnerLab/\(request.requestID.uuidString)", directoryHint: .isDirectory)
+    guard FileManager.default.isExecutableFile(atPath: helperExecutableURL.path) else {
+      throw ScriptHelperProcessError.helperMissing
+    }
+
+    let workingDirectory = workingDirectoryRoot.appending(
+      path: request.requestID.uuidString,
+      directoryHint: .isDirectory
+    )
     let requestURL = workingDirectory.appending(path: "request.json")
     let resultURL = workingDirectory.appending(path: "result.json")
     let progressURL = workingDirectory.appending(path: "progress.json")
@@ -26,9 +45,8 @@ final class HelperProcessRunner {
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     try encoder.encode(request).write(to: requestURL, options: .atomic)
 
-    let helperURL = try helperExecutableURL()
     let process = Process()
-    process.executableURL = helperURL
+    process.executableURL = helperExecutableURL
     process.arguments = [requestURL.path, resultURL.path, progressURL.path]
     process.standardOutput = FileHandle.nullDevice
     process.standardError = FileHandle.nullDevice
@@ -46,35 +64,25 @@ final class HelperProcessRunner {
         try Task.checkCancellation()
         if ContinuousClock.now >= deadline {
           await stop(process)
-          throw HelperProcessError.timedOut
+          throw ScriptHelperProcessError.timedOut
         }
         try await Task.sleep(for: .milliseconds(50))
       }
       try Task.checkCancellation()
     } catch is CancellationError {
       await stop(process)
-      throw HelperProcessError.cancelled
+      throw ScriptHelperProcessError.cancelled
     }
 
     if let data = try? Data(contentsOf: resultURL),
        let result = try? JSONDecoder().decode(ScriptExecutionResult.self, from: data) {
       return result
     }
-
-    throw HelperProcessError.exitedWithoutResult(process.terminationStatus)
+    throw ScriptHelperProcessError.exitedWithoutResult(process.terminationStatus)
   }
 
-  func cancel() {
+  public func cancel() {
     process?.terminate()
-  }
-
-  private func helperExecutableURL() throws -> URL {
-    let url = Bundle.main.bundleURL
-      .appending(path: "Contents/Helpers/ScriptRunnerHelper.app/Contents/MacOS/ScriptRunnerHelper")
-    guard FileManager.default.isExecutableFile(atPath: url.path) else {
-      throw HelperProcessError.helperMissing
-    }
-    return url
   }
 
   private func readProgress(at url: URL) -> ScriptProgressSnapshot? {
@@ -98,13 +106,13 @@ final class HelperProcessRunner {
   }
 }
 
-enum HelperProcessError: LocalizedError {
+public enum ScriptHelperProcessError: LocalizedError, Equatable, Sendable {
   case helperMissing
   case timedOut
   case cancelled
   case exitedWithoutResult(Int32)
 
-  var errorDescription: String? {
+  public var errorDescription: String? {
     switch self {
     case .helperMissing:
       "ScriptRunnerHelper is missing from the application bundle."

@@ -20,7 +20,6 @@
 		4B5882D7CE9B36CC6F83959B /* ScriptExecutionStatus+View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E40851872F8043D76B08A25 /* ScriptExecutionStatus+View.swift */; };
 		4C6334100253168984362246 /* ExecutionTimeout.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBE21D04B32A3E630493A41D /* ExecutionTimeout.swift */; };
 		56707130C28292685C324CE8 /* FavoriteScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF4E1F946347F7F3AFC0111 /* FavoriteScript.swift */; };
-		7B86FBDBC2C13009542DD7FE /* HelperProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BB98BE1F79203E34E06E636 /* HelperProcessRunner.swift */; };
 		887A8C0A521342EAA554A6D6 /* ResultDisplayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA163970E14E4A624C227159 /* ResultDisplayMode.swift */; };
 		8C68FD1244CD0709C967CF48 /* ScriptRunnerHelperMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F1D0E9C86CC4A2064F1A2E /* ScriptRunnerHelperMain.swift */; };
 		ADBF49974545A76BECCC0A1B /* ScriptRunnerKit in Frameworks */ = {isa = PBXBuildFile; productRef = 599D69C9166FBAAA84D4B70E /* ScriptRunnerKit */; };
@@ -65,7 +64,6 @@
 		59A72D43105B7B429571C920 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		60A1B2C3D4E5F60718293A4B /* ExecuteScriptsCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExecuteScriptsCommand.swift; sourceTree = "<group>"; };
 		61EB287F796B267C655981E4 /* ScriptFolderEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptFolderEntry.swift; sourceTree = "<group>"; };
-		7BB98BE1F79203E34E06E636 /* HelperProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperProcessRunner.swift; sourceTree = "<group>"; };
 		7BC991C8ACD03D67F9AE2A08 /* ScriptRunnerKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ScriptRunnerKit; path = Packages/ScriptRunnerKit; sourceTree = SOURCE_ROOT; };
 		82B8A2B331001533CE2253A4 /* ScriptCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptCapability.swift; sourceTree = "<group>"; };
 		80A1B2C3D4E5F60718293A4B /* ScriptDirectoryExecution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptDirectoryExecution.swift; sourceTree = "<group>"; };
@@ -129,7 +127,6 @@
 				DBE21D04B32A3E630493A41D /* ExecutionTimeout.swift */,
 				60A1B2C3D4E5F60718293A4B /* ExecuteScriptsCommand.swift */,
 				4EF4E1F946347F7F3AFC0111 /* FavoriteScript.swift */,
-				7BB98BE1F79203E34E06E636 /* HelperProcessRunner.swift */,
 				59A72D43105B7B429571C920 /* Info.plist */,
 				BA163970E14E4A624C227159 /* ResultDisplayMode.swift */,
 				82B8A2B331001533CE2253A4 /* ScriptCapability.swift */,
@@ -264,7 +261,6 @@
 				4C6334100253168984362246 /* ExecutionTimeout.swift in Sources */,
 				50A1B2C3D4E5F60718293A4B /* ExecuteScriptsCommand.swift in Sources */,
 				56707130C28292685C324CE8 /* FavoriteScript.swift in Sources */,
-				7B86FBDBC2C13009542DD7FE /* HelperProcessRunner.swift in Sources */,
 				887A8C0A521342EAA554A6D6 /* ResultDisplayMode.swift in Sources */,
 				21F99F1F1BE516EA48BF0537 /* ScriptCapability.swift in Sources */,
 				70A1B2C3D4E5F60718293A4B /* ScriptDirectoryExecution.swift in Sources */,
@@ -298,7 +294,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 19;
+				CURRENT_PROJECT_VERSION = 20;
 				INFOPLIST_FILE = Helper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -319,7 +315,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 19;
+				CURRENT_PROJECT_VERSION = 20;
 				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -338,7 +334,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 19;
+				CURRENT_PROJECT_VERSION = 20;
 				INFOPLIST_FILE = Helper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -359,7 +355,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 19;
+				CURRENT_PROJECT_VERSION = 20;
 				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

@@ -14,6 +14,7 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 - Supports cancellation and configurable timeouts by terminating only the helper
 - Shares Codable request/result models and OSAKit execution through `ScriptRunnerKit`
 - Shares Codable ordered collection reports and formatting through `ScriptRunnerKit`
+- Uses ScriptRunnerKit's configurable isolated helper launcher for timeout, cancellation, and progress transport
 - Reports structured AppleScript errors, source ranges, raw results, duration, UTI, and architecture
 - Displays results as AE Print or AppleScript source
 - Opens scripts in the user's default editor
