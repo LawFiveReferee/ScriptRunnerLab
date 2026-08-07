@@ -27,6 +27,19 @@ Open the project in Bitrig or Xcode, build `ScriptRunnerLab`, choose a script, a
 
 The app is intentionally not sandboxed. macOS privacy controls still apply, so scripts that automate other applications can trigger Automation permission prompts.
 
+## AppleScript commands
+
+ScriptRunnerLab includes an SDEF dictionary and accepts recursive directory execution requests:
+
+```applescript
+tell application "Script Runner Lab"
+  execute scripts automatically in (POSIX file "/path/to/scripts")
+  execute scripts interactively in (POSIX file "/path/to/scripts")
+end tell
+```
+
+Automatic execution runs every supported script in sorted order. Interactive execution shows each result and the next script name, with Run Again, Run Next or Finish, and Quit controls. Commands return immediately after the request is accepted; execution remains isolated and is recorded in the shared log.
+
 ## Compatibility scripts
 
 `CompatibilityTests` contains ordered AppleScript fixtures for unattended core checks, cancellation and timeout, Automation and Accessibility permissions, Standard Additions, AppleScriptObjC, third-party libraries, bundled resources, persistent properties, handler behavior, and applet lifecycle support. Compiled `.scpt`, bundled `.scptd`, and applet `.app` variants are included and distributed inside the app as its default Scripts folder. The app's automatic suite runs safe, deterministic tests one at a time and checks exact return values or structured error details. Machine-dependent results use explicit constraints. Interactive, permission-sensitive, intentionally hanging, and optional third-party tests remain visible as manual or optional tests with an explanation.

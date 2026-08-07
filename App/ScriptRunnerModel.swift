@@ -9,6 +9,8 @@ import ScriptRunnerKit
 @MainActor
 @Observable
 final class ScriptRunnerModel {
+  static let shared = ScriptRunnerModel()
+
   var descriptor: ScriptDescriptor?
   var result: ScriptExecutionResult?
   var status = ScriptExecutionStatus.ready
@@ -24,6 +26,7 @@ final class ScriptRunnerModel {
   var currentCompatibilityTestName: String?
   var compatibilitySuiteStartedAt: Date?
   var compatibilitySuiteCompletedAt: Date?
+  var scriptedInteractivePrompt: ScriptedInteractivePrompt?
 
   private static let favoritesKey = "favoriteScripts"
   private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
@@ -32,6 +35,8 @@ final class ScriptRunnerModel {
   private var executionTask: Task<Void, Never>?
   private var scriptsFolderAccessURL: URL?
   private var scriptsFolderMonitors: [DispatchSourceFileSystemObject] = []
+  private var scriptedEntries: [ScriptFolderEntry] = []
+  private var scriptedEntryIndex = 0
 
   init() {
     let executionLogURL = Self.defaultExecutionLogURL
@@ -221,6 +226,49 @@ final class ScriptRunnerModel {
     }
     selectScript(at: url)
     run(timeout: timeout)
+  }
+
+  func executeScripts(in directoryURL: URL, mode: ScriptDirectoryExecutionMode) {
+    guard !isRunning else {
+      showLocalError("A script execution is already in progress.")
+      return
+    }
+    let entries = Self.scriptEntries(in: directoryURL).filter { $0.descriptor.scriptType != .unsupported }
+    guard !entries.isEmpty else {
+      showLocalError("No supported scripts were found in the specified directory.")
+      return
+    }
+    scriptedEntries = entries
+    scriptedEntryIndex = 0
+    scriptedInteractivePrompt = nil
+    switch mode {
+    case .automatically:
+      runScriptedDirectoryAutomatically()
+    case .interactively:
+      runCurrentScriptedInteractiveEntry()
+    }
+  }
+
+  func repeatScriptedInteractiveScript() {
+    scriptedInteractivePrompt = nil
+    runCurrentScriptedInteractiveEntry()
+  }
+
+  func advanceScriptedInteractiveRun() {
+    scriptedInteractivePrompt = nil
+    scriptedEntryIndex += 1
+    guard scriptedEntryIndex < scriptedEntries.count else {
+      finishScriptedDirectoryRun()
+      return
+    }
+    runCurrentScriptedInteractiveEntry()
+  }
+
+  func quitScriptedInteractiveRun() {
+    scriptedInteractivePrompt = nil
+    scriptedEntries = []
+    scriptedEntryIndex = 0
+    status = .cancelled
   }
 
   func refreshScriptsFolder() {
@@ -646,6 +694,101 @@ final class ScriptRunnerModel {
       return "Matched \(expected?.displayName ?? result.status.displayName)."
     }
     return "Assertion mismatch: " + failures.joined(separator: "; ") + "."
+  }
+
+  private func runScriptedDirectoryAutomatically() {
+    isRunning = true
+    status = .running
+    result = nil
+    executionTask = Task { [weak self] in
+      guard let self else { return }
+      var encounteredFailure = false
+      for entry in scriptedEntries {
+        if Task.isCancelled { break }
+        descriptor = entry.descriptor
+        executedScriptPaths.insert(Self.scriptIdentity(for: entry.url))
+        let executionResult = await executeScriptedEntry(entry)
+        result = executionResult
+        encounteredFailure = encounteredFailure || executionResult.status != .completed
+        await recordExecution(descriptor: entry.descriptor, result: executionResult)
+      }
+      isRunning = false
+      status = Task.isCancelled ? .cancelled : (encounteredFailure ? .failed : .completed)
+      scriptedEntries = []
+      scriptedEntryIndex = 0
+      executionTask = nil
+    }
+  }
+
+  private func runCurrentScriptedInteractiveEntry() {
+    guard scriptedEntries.indices.contains(scriptedEntryIndex) else {
+      finishScriptedDirectoryRun()
+      return
+    }
+    let entry = scriptedEntries[scriptedEntryIndex]
+    descriptor = entry.descriptor
+    isRunning = true
+    status = .running
+    result = nil
+    executedScriptPaths.insert(Self.scriptIdentity(for: entry.url))
+    executionTask = Task { [weak self] in
+      guard let self else { return }
+      let executionResult = await executeScriptedEntry(entry)
+      result = executionResult
+      status = executionResult.status
+      isRunning = false
+      await recordExecution(descriptor: entry.descriptor, result: executionResult)
+      let nextName = scriptedEntries.indices.contains(scriptedEntryIndex + 1)
+        ? scriptedEntries[scriptedEntryIndex + 1].descriptor.displayName
+        : nil
+      scriptedInteractivePrompt = ScriptedInteractivePrompt(
+        scriptName: entry.descriptor.displayName,
+        resultText: outputText(for: .source),
+        nextScriptName: nextName
+      )
+      executionTask = nil
+    }
+  }
+
+  private func executeScriptedEntry(_ entry: ScriptFolderEntry) async -> ScriptExecutionResult {
+    let startedAt = Date()
+    let request: ScriptExecutionRequest
+    do {
+      request = try ScriptExecutionRequest(scriptURL: entry.url)
+    } catch {
+      return .failure(
+        requestID: UUID(),
+        message: "The script could not be prepared. \(error.localizedDescription)",
+        startedAt: startedAt
+      )
+    }
+    do {
+      return try await helperRunner.execute(request: request, timeout: scriptedExecutionTimeout) { [weak self] snapshot in
+        self?.scriptProgress = snapshot
+      }
+    } catch let error as HelperProcessError {
+      return .failure(
+        requestID: request.requestID,
+        status: Self.executionStatus(for: error),
+        message: error.localizedDescription,
+        startedAt: startedAt
+      )
+    } catch {
+      return .failure(requestID: request.requestID, message: error.localizedDescription, startedAt: startedAt)
+    }
+  }
+
+  private func finishScriptedDirectoryRun() {
+    scriptedInteractivePrompt = nil
+    scriptedEntries = []
+    scriptedEntryIndex = 0
+    isRunning = false
+    status = .completed
+  }
+
+  private var scriptedExecutionTimeout: TimeInterval {
+    let storedValue = UserDefaults.standard.integer(forKey: "executionTimeout")
+    return TimeInterval(storedValue > 0 ? storedValue : ExecutionTimeout.thirtySeconds.rawValue)
   }
 
   private func addSelectedScriptToFavorites() {

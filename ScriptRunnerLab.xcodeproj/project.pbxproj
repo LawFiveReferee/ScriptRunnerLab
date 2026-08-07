@@ -10,6 +10,9 @@
 		0438CB241887181BECA262AB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9664B56C0A1C2B1F196A0B15 /* Assets.xcassets */; };
 		10206C16DD681B5A8E7FE82B /* ScriptRunnerLabHelper.app in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 35EA2D0810EAD34EAC0900A4 /* ScriptRunnerLabHelper.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		18381E785784C11F4EDFE3A1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7A7D99BAE4E6A1FAC18C47 /* ContentView.swift */; };
+		50A1B2C3D4E5F60718293A4B /* ExecuteScriptsCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A1B2C3D4E5F60718293A4B /* ExecuteScriptsCommand.swift */; };
+		70A1B2C3D4E5F60718293A4B /* ScriptDirectoryExecution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A1B2C3D4E5F60718293A4B /* ScriptDirectoryExecution.swift */; };
+		90A1B2C3D4E5F60718293A4B /* ScriptRunnerLab.sdef in Resources */ = {isa = PBXBuildFile; fileRef = A0A1B2C3D4E5F60718293A4B /* ScriptRunnerLab.sdef */; };
 		19D2A4B6C8E0F123456789AB /* CompatibilityTestDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29D2A4B6C8E0F123456789AB /* CompatibilityTestDefinition.swift */; };
 		39D2A4B6C8E0F123456789AB /* CompatibilityTestResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D2A4B6C8E0F123456789AB /* CompatibilityTestResult.swift */; };
 		1A8791E12E91631A260A8021 /* ScriptFolderEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61EB287F796B267C655981E4 /* ScriptFolderEntry.swift */; };
@@ -60,12 +63,15 @@
 		49D2A4B6C8E0F123456789AB /* CompatibilityTestResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityTestResult.swift; sourceTree = "<group>"; };
 		4EF4E1F946347F7F3AFC0111 /* FavoriteScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteScript.swift; sourceTree = "<group>"; };
 		59A72D43105B7B429571C920 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		60A1B2C3D4E5F60718293A4B /* ExecuteScriptsCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExecuteScriptsCommand.swift; sourceTree = "<group>"; };
 		61EB287F796B267C655981E4 /* ScriptFolderEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptFolderEntry.swift; sourceTree = "<group>"; };
 		7BB98BE1F79203E34E06E636 /* HelperProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperProcessRunner.swift; sourceTree = "<group>"; };
 		7BC991C8ACD03D67F9AE2A08 /* ScriptRunnerKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ScriptRunnerKit; path = Packages/ScriptRunnerKit; sourceTree = SOURCE_ROOT; };
 		82B8A2B331001533CE2253A4 /* ScriptCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptCapability.swift; sourceTree = "<group>"; };
+		80A1B2C3D4E5F60718293A4B /* ScriptDirectoryExecution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptDirectoryExecution.swift; sourceTree = "<group>"; };
 		9664B56C0A1C2B1F196A0B15 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A6F1D0E9C86CC4A2064F1A2E /* ScriptRunnerHelperMain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptRunnerHelperMain.swift; sourceTree = "<group>"; };
+		A0A1B2C3D4E5F60718293A4B /* ScriptRunnerLab.sdef */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = ScriptRunnerLab.sdef; sourceTree = "<group>"; };
 		B91515B6EE107BEFF844756D /* ScriptRunnerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptRunnerModel.swift; sourceTree = "<group>"; };
 		BA163970E14E4A624C227159 /* ResultDisplayMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultDisplayMode.swift; sourceTree = "<group>"; };
 		C14E697A9096430638B55B0E /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
@@ -121,14 +127,17 @@
 				49D2A4B6C8E0F123456789AB /* CompatibilityTestResult.swift */,
 				DB7A7D99BAE4E6A1FAC18C47 /* ContentView.swift */,
 				DBE21D04B32A3E630493A41D /* ExecutionTimeout.swift */,
+				60A1B2C3D4E5F60718293A4B /* ExecuteScriptsCommand.swift */,
 				4EF4E1F946347F7F3AFC0111 /* FavoriteScript.swift */,
 				7BB98BE1F79203E34E06E636 /* HelperProcessRunner.swift */,
 				59A72D43105B7B429571C920 /* Info.plist */,
 				BA163970E14E4A624C227159 /* ResultDisplayMode.swift */,
 				82B8A2B331001533CE2253A4 /* ScriptCapability.swift */,
+				80A1B2C3D4E5F60718293A4B /* ScriptDirectoryExecution.swift */,
 				61EB287F796B267C655981E4 /* ScriptFolderEntry.swift */,
 				4E40851872F8043D76B08A25 /* ScriptExecutionStatus+View.swift */,
 				B91515B6EE107BEFF844756D /* ScriptRunnerModel.swift */,
+				A0A1B2C3D4E5F60718293A4B /* ScriptRunnerLab.sdef */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -237,6 +246,7 @@
 			files = (
 				0438CB241887181BECA262AB /* Assets.xcassets in Resources */,
 				F66C2E5021BB52D47162FF21 /* CompatibilityTests in Resources */,
+				90A1B2C3D4E5F60718293A4B /* ScriptRunnerLab.sdef in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -252,10 +262,12 @@
 				39D2A4B6C8E0F123456789AB /* CompatibilityTestResult.swift in Sources */,
 				18381E785784C11F4EDFE3A1 /* ContentView.swift in Sources */,
 				4C6334100253168984362246 /* ExecutionTimeout.swift in Sources */,
+				50A1B2C3D4E5F60718293A4B /* ExecuteScriptsCommand.swift in Sources */,
 				56707130C28292685C324CE8 /* FavoriteScript.swift in Sources */,
 				7B86FBDBC2C13009542DD7FE /* HelperProcessRunner.swift in Sources */,
 				887A8C0A521342EAA554A6D6 /* ResultDisplayMode.swift in Sources */,
 				21F99F1F1BE516EA48BF0537 /* ScriptCapability.swift in Sources */,
+				70A1B2C3D4E5F60718293A4B /* ScriptDirectoryExecution.swift in Sources */,
 				1A8791E12E91631A260A8021 /* ScriptFolderEntry.swift in Sources */,
 				4B5882D7CE9B36CC6F83959B /* ScriptExecutionStatus+View.swift in Sources */,
 				E3912497A81018AF5545EE74 /* ScriptRunnerModel.swift in Sources */,
@@ -286,7 +298,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				INFOPLIST_FILE = Helper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -307,7 +319,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -326,7 +338,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				INFOPLIST_FILE = Helper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -347,7 +359,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

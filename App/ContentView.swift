@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 
 @MainActor
 struct ContentView: View {
-  @State private var runner = ScriptRunnerModel()
+  @State private var runner = ScriptRunnerModel.shared
   @State private var isShowingImporter = false
   @State private var importerPurpose = ImporterPurpose.script
   @State private var isDropTargeted = false
@@ -73,7 +73,40 @@ struct ContentView: View {
           progressPanel.dismiss()
         }
       }
+      .sheet(item: $runner.scriptedInteractivePrompt) { prompt in
+        scriptedInteractiveResultSheet(prompt)
+      }
     }
+  }
+
+  private func scriptedInteractiveResultSheet(_ prompt: ScriptedInteractivePrompt) -> some View {
+    VStack(alignment: .leading, spacing: 16) {
+      Text(prompt.scriptName)
+        .font(.headline)
+      Text(prompt.resultText)
+        .font(.system(.body, design: .monospaced))
+        .textSelection(.enabled)
+        .frame(maxWidth: .infinity, alignment: .leading)
+      Divider()
+      LabeledContent("Next") {
+        Text(prompt.nextScriptName ?? "End of collection")
+      }
+      HStack {
+        Button("Quit", role: .cancel) {
+          runner.quitScriptedInteractiveRun()
+        }
+        Spacer()
+        Button("Run Again", systemImage: "arrow.clockwise") {
+          runner.repeatScriptedInteractiveScript()
+        }
+        Button(prompt.nextScriptName == nil ? "Finish" : "Run Next", systemImage: "play.fill") {
+          runner.advanceScriptedInteractiveRun()
+        }
+        .buttonStyle(.borderedProminent)
+      }
+    }
+    .padding(20)
+    .frame(width: 520)
   }
 
   private var dropZone: some View {
