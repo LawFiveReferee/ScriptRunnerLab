@@ -1,5 +1,9 @@
 # Embedding ScriptRunnerKit
 
+## Package dependency
+
+Add `https://github.com/LawFiveReferee/ScriptRunnerLab.git` as a Swift package dependency and select the `ScriptRunnerKit` product. Version 1.0.0 supports the execution engine on macOS 13 and later; the observable Favorites store requires macOS 14 or later.
+
 ScriptRunnerKit is the reusable execution layer. A host application embeds a separately signed copy of ScriptRunnerHelper and creates one `ScriptRunnerService` for the lifetime of the host process.
 
 ## Host target

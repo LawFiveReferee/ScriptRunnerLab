@@ -3,6 +3,7 @@ import Observation
 
 @MainActor
 @Observable
+@available(macOS 14.0, *)
 public final class FavoriteScriptStore {
   public private(set) var favorites: [FavoriteScript]
 
