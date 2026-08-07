@@ -15,7 +15,9 @@ final class ScriptRunnerModel {
   var result: ScriptExecutionResult?
   var status = ScriptExecutionStatus.ready
   var isRunning = false
-  var favorites: [FavoriteScript]
+  var favorites: [FavoriteScript] {
+    favoriteStore.favorites
+  }
   var scriptsFolderURL: URL?
   var scriptsFolderEntries: [ScriptFolderEntry] = []
   var executedScriptPaths: Set<String> = []
@@ -29,9 +31,9 @@ final class ScriptRunnerModel {
   var scriptedInteractivePrompt: ScriptedInteractivePrompt?
   var scriptCollectionReport: ScriptCollectionExecutionReport?
 
-  private static let favoritesKey = "favoriteScripts"
   private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
   private let runnerService: ScriptRunnerService
+  private let favoriteStore: FavoriteScriptStore
   private var executionTask: Task<Void, Never>?
   private var scriptsFolderAccessURL: URL?
   private var scriptsFolderMonitors: [DispatchSourceFileSystemObject] = []
@@ -42,6 +44,7 @@ final class ScriptRunnerModel {
 
   init() {
     let executionLogURL = Self.defaultExecutionLogURL
+    self.favoriteStore = FavoriteScriptStore()
     self.runnerService = ScriptRunnerService(
       configuration: .current(
         helperExecutableURL: Self.helperExecutableURL,
@@ -51,7 +54,6 @@ final class ScriptRunnerModel {
       )
     )
     self.executionLogURL = executionLogURL
-    favorites = Self.loadFavorites()
     scriptsFolderURL = nil
     restoreScriptsFolder()
   }
@@ -79,9 +81,7 @@ final class ScriptRunnerModel {
 
   var selectedFavoriteID: UUID? {
     guard let selectedPath = descriptor?.url.standardizedFileURL.path(percentEncoded: false) else { return nil }
-    return favorites.first {
-      URL(fileURLWithPath: $0.lastKnownPath).standardizedFileURL.path(percentEncoded: false) == selectedPath
-    }?.id
+    return favoriteStore.favoriteID(for: URL(fileURLWithPath: selectedPath))
   }
 
   var isSelectedScriptFavorite: Bool {
@@ -302,10 +302,8 @@ final class ScriptRunnerModel {
   }
 
   func selectFavorite(id: UUID) {
-    guard let index = favorites.firstIndex(where: { $0.id == id }) else { return }
-
     do {
-      let resolution = try favorites[index].resolvedURL()
+      let resolution = try favoriteStore.resolveAndRefresh(id: id)
       let accessed = resolution.url.startAccessingSecurityScopedResource()
       defer {
         if accessed {
@@ -317,14 +315,6 @@ final class ScriptRunnerModel {
       descriptor = selectedDescriptor
       result = nil
       status = .ready
-
-      let refreshed = try favorite(for: selectedDescriptor)
-      favorites[index] = FavoriteScript(
-        id: favorites[index].id,
-        replacing: refreshed
-      )
-      favorites.sort { $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending }
-      saveFavorites()
     } catch {
       showLocalError("This favorite could not be opened. Choose the script again to restore access. \(error.localizedDescription)")
     }
@@ -339,8 +329,7 @@ final class ScriptRunnerModel {
   }
 
   func removeFavorite(id: UUID) {
-    favorites.removeAll { $0.id == id }
-    saveFavorites()
+    favoriteStore.remove(id: id)
   }
 
   func run(timeout: TimeInterval) {
@@ -704,9 +693,7 @@ final class ScriptRunnerModel {
     }
 
     do {
-      favorites.append(try favorite(for: descriptor))
-      favorites.sort { $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending }
-      saveFavorites()
+      try favoriteStore.add(descriptor)
     } catch {
       showLocalError("This script could not be added to Favorites. \(error.localizedDescription)")
     }
@@ -865,21 +852,4 @@ final class ScriptRunnerModel {
       .appending(path: "ScriptExecutionLog.jsonl", directoryHint: .notDirectory)
   }
 
-  private func favorite(for descriptor: ScriptDescriptor) throws -> FavoriteScript {
-    try FavoriteScript(descriptor: descriptor)
-  }
-
-  private func saveFavorites() {
-    guard let data = try? JSONEncoder().encode(favorites) else { return }
-    UserDefaults.standard.set(String(decoding: data, as: UTF8.self), forKey: Self.favoritesKey)
-  }
-
-  private static func loadFavorites() -> [FavoriteScript] {
-    guard let storedValue = UserDefaults.standard.string(forKey: favoritesKey),
-          let data = storedValue.data(using: .utf8),
-          let favorites = try? JSONDecoder().decode([FavoriteScript].self, from: data) else {
-      return []
-    }
-    return favorites
-  }
 }
