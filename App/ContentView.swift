@@ -92,6 +92,20 @@ struct ContentView: View {
 
   private var scriptsFolderMenu: some View {
     Menu {
+      Button("Reveal in Finder", systemImage: "folder") {
+        runner.revealScriptsFolder()
+      }
+      Button("Choose Scripts Folder…", systemImage: "folder.badge.plus") {
+        presentImporter(for: .scriptsFolder)
+      }
+      Button("Refresh Scripts", systemImage: "arrow.clockwise") {
+        runner.refreshScriptsFolder()
+      }
+      Button("Use Compatibility Tests", systemImage: "arrow.uturn.backward") {
+        runner.useBundledCompatibilityTests()
+      }
+
+      Divider()
       if runner.scriptsFolderEntries.isEmpty {
         Text("No scripts found")
       } else {
@@ -111,17 +125,6 @@ struct ContentView: View {
           .disabled(runner.isRunning)
         }
       }
-
-      Divider()
-      Button("Refresh Scripts", systemImage: "arrow.clockwise") {
-        runner.refreshScriptsFolder()
-      }
-      Button("Choose Scripts Folder…", systemImage: "folder.badge.plus") {
-        presentImporter(for: .scriptsFolder)
-      }
-      Button("Use Compatibility Tests", systemImage: "arrow.uturn.backward") {
-        runner.useBundledCompatibilityTests()
-      }
     } label: {
       Label(runner.scriptsFolderDisplayName, systemImage: "folder")
     }
@@ -129,11 +132,14 @@ struct ContentView: View {
     .help("Scripts in \(runner.scriptsFolderDisplayName)")
     .accessibilityLabel("Scripts folder: \(runner.scriptsFolderDisplayName)")
     .contextMenu {
-      Button("Refresh Scripts", systemImage: "arrow.clockwise") {
-        runner.refreshScriptsFolder()
+      Button("Reveal in Finder", systemImage: "folder") {
+        runner.revealScriptsFolder()
       }
       Button("Choose Scripts Folder…", systemImage: "folder.badge.plus") {
         presentImporter(for: .scriptsFolder)
+      }
+      Button("Refresh Scripts", systemImage: "arrow.clockwise") {
+        runner.refreshScriptsFolder()
       }
       Button("Use Compatibility Tests", systemImage: "arrow.uturn.backward") {
         runner.useBundledCompatibilityTests()

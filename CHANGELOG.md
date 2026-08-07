@@ -3,20 +3,24 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 10
-- Date: 2026-08-05
+- Build: 11
+- Date: 2026-08-06
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 10
+### Build 11
+
+- Moved Scripts-folder commands above the script list and added Reveal in Finder.
+
+## Build history
+
+### Version 1.0, build 10
 
 - Added script name and full path at the top of Diagnostics.
 - Added status, duration, and final return value or error at the end of Diagnostics.
 - Added Copy Diagnostics.
 - Added a reusable, versioned ScriptRunnerKit JSON-lines execution log for ScriptRunnerLab, UpDock, and other hosts.
-
-## Build history
 
 ### Version 1.0, build 9
 

@@ -171,6 +171,11 @@ final class ScriptRunnerModel {
     scriptsFolderEntries = Self.scriptEntries(in: scriptsFolderURL)
   }
 
+  func revealScriptsFolder() {
+    guard let scriptsFolderURL else { return }
+    NSWorkspace.shared.activateFileViewerSelecting([scriptsFolderURL])
+  }
+
   func useBundledCompatibilityTests() {
     guard let url = Self.bundledCompatibilityTestsURL else {
       showLocalError("The bundled CompatibilityTests folder could not be found.")
