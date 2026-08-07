@@ -3,21 +3,29 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 31
+- Build: 32
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 31
+### Build 32
+
+- Added a repository-root Swift package manifest so ScriptRunnerKit can be consumed directly from GitHub.
+- Preserved the nested package manifest for local package development and existing project references.
+- Lowered the reusable execution engine deployment declaration to macOS 13 for UpDock compatibility.
+- Kept the Observation-based Favorites store explicitly available on macOS 14 and later.
+- Added remote-package installation guidance for host applications.
+
+## Build history
+
+### Version 1.0, build 31
 
 - Added an in-app repair prompt when a Favorite bookmark can no longer resolve.
 - The prompt identifies the affected script and preserves the underlying resolution error for diagnosis.
 - Locate Script lets the user choose a moved or replacement script and repairs the existing Favorite in place.
 - Repair preserves the Favorite ID while refreshing its bookmark, name, path, type, extension, and capability tags.
 - Unsupported replacement items are rejected without changing the Favorite.
-
-## Build history
 
 ### Version 1.0, build 30
 

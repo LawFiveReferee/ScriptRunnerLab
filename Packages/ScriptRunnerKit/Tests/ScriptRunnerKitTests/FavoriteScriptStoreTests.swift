@@ -1,6 +1,7 @@
 import XCTest
 @testable import ScriptRunnerKit
 
+@available(macOS 14.0, *)
 final class FavoriteScriptStoreTests: XCTestCase {
   @MainActor
   func testLoadsExistingJSONAndPreservesStorageFormat() throws {

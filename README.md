@@ -41,6 +41,19 @@ The app is intentionally not sandboxed. macOS privacy controls still apply, so s
 
 Other macOS applications can adopt the same engine through [the ScriptRunnerKit embedding guide](Documentation/EmbeddingScriptRunnerKit.md).
 
+## Swift package
+
+ScriptRunnerKit is available directly from this repository:
+
+```swift
+.package(
+  url: "https://github.com/LawFiveReferee/ScriptRunnerLab.git",
+  from: "1.0.0"
+)
+```
+
+Link the `ScriptRunnerKit` product to the host and its Cocoa helper target. The helper remains host-owned so its bundle identifier, signing, and embedding match the destination application.
+
 ## AppleScript commands
 
 ScriptRunnerLab includes an SDEF dictionary and accepts recursive directory execution requests:
@@ -70,7 +83,7 @@ OSAKit does not publicly expose AppleScript's four built-in progress values to h
 
 ## Next milestone
 
-Add a reusable execution-log reader and an in-app history browser suitable for ScriptRunnerLab and other hosts.
+Complete the first ScriptRunnerKit and ScriptRunnerHelper integration in UpDock Pro.
 
 ## Scope
 

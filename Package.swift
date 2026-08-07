@@ -13,6 +13,7 @@ let package = Package(
   targets: [
     .target(
       name: "ScriptRunnerKit",
+      path: "Packages/ScriptRunnerKit/Sources/ScriptRunnerKit",
       resources: [
         .copy("Resources/CompatibilityTests")
       ],
@@ -22,7 +23,8 @@ let package = Package(
     ),
     .testTarget(
       name: "ScriptRunnerKitTests",
-      dependencies: ["ScriptRunnerKit"]
+      dependencies: ["ScriptRunnerKit"],
+      path: "Packages/ScriptRunnerKit/Tests/ScriptRunnerKitTests"
     )
   ]
 )
