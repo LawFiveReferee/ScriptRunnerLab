@@ -70,6 +70,12 @@ The interactive action provider is host-neutral. UpDock can therefore display it
 
 An AppleScriptable host adds its own commands to its SDEF and forwards them to the two collection methods. `App/ExecuteScriptsCommand.swift` and `App/ScriptRunnerLab.sdef` are the reference command bridge. The scripting definition remains host-owned so application names and terminology do not leak into ScriptRunnerKit.
 
+## Compatibility suite
+
+Embed the repository's `CompatibilityTests` folder and pass its bundle URL to `executeCompatibilitySuite`. The default manifest supplies the same automatic tests and assertions used by ScriptRunnerLab. Start, progress, and completion callbacks allow the host to build its own live test interface; the returned report contains ordered per-test results and completion state.
+
+Manual and optional definitions are available through `CompatibilityTestDefinition.deferredTests`. Hosts decide how and when to present those permission-sensitive, interactive, or third-party tests.
+
 ## Distribution checks
 
 Before distributing a host, verify the outer app and embedded helper with `codesign --verify --deep --strict`, then test Developer ID signing, hardened runtime, notarization, quarantine, Automation permission prompts, and third-party framework architectures on a clean Mac.

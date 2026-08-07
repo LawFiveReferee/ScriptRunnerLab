@@ -3,21 +3,29 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 23
+- Build: 24
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 23
+### Build 24
+
+- Moved the baseline compatibility manifest, expectations, assertions, and result models into ScriptRunnerKit.
+- Added reusable sequential compatibility-suite execution to ScriptRunnerService with live test and progress callbacks.
+- Preserved the established baseline of 20 automatic tests and 26 content assertions.
+- Migrated ScriptRunnerLab's compatibility window to the shared suite runner while retaining its existing live UI and summaries.
+- Added package regression coverage for manifest integrity, ordered results, passing assertions, and assertion failures.
+
+## Build history
+
+### Version 1.0, build 23
 
 - Added ScriptRunnerService as the supported host entry point for isolated execution, collections, cancellation, progress, and JSON-lines logging.
 - Added host configuration that records the embedding application's identity and current execution environment.
 - Migrated ScriptRunnerLab's single runs, compatibility suite, and collection runs to the same service intended for UpDock.
 - Added an embedding guide covering the package, Cocoa helper target, signing, service setup, collections, and AppleScript commands.
 - Added service regression coverage for structured execution and host-specific log output.
-
-## Build history
 
 ### Version 1.0, build 22
 

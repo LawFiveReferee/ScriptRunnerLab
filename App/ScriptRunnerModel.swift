@@ -389,67 +389,23 @@ final class ScriptRunnerModel {
 
     executionTask = Task { [weak self] in
       guard let self else { return }
-      var wasStopped = false
-
-      for test in automaticCompatibilityTests {
-        if Task.isCancelled {
-          wasStopped = true
-          break
-        }
-
-        currentCompatibilityTestName = test.displayName
-        compatibilityResults[test.id] = .running
-        let scriptURL = compatibilityTestsURL.appending(path: test.relativePath)
-        executedScriptPaths.insert(Self.scriptIdentity(for: scriptURL))
-
-        guard FileManager.default.fileExists(atPath: scriptURL.path) else {
-          compatibilityResults[test.id] = CompatibilityTestResult(
-            state: .failed,
-            message: "The bundled test file is missing."
-          )
-          continue
-        }
-
-        let executionResult = await runnerService.execute(
-          scriptURL: scriptURL,
-          timeout: test.timeout
-        ) { [weak self] snapshot in
-          self?.scriptProgress = snapshot
-        }
-        if executionResult.status == .cancelled, Task.isCancelled {
-          compatibilityResults[test.id] = CompatibilityTestResult(
-            state: .stopped,
-            message: "The suite was stopped."
-          )
-          wasStopped = true
-          break
-        }
-
-        let expectationFailures = test.expectedOutcome?.failures(for: executionResult)
-          ?? ["The test has no expected outcome."]
-        let passed = expectationFailures.isEmpty
-        compatibilityResults[test.id] = CompatibilityTestResult(
-          state: passed ? .passed : .failed,
-          observedStatus: executionResult.status,
-          errorNumber: executionResult.errorNumber,
-          message: compatibilityMessage(
-            for: executionResult,
-            expected: test.expectedOutcome,
-            failures: expectationFailures
-          ),
-          duration: executionResult.executionDuration
-        )
-        scriptProgress = nil
-      }
+      let report = await runnerService.executeCompatibilitySuite(
+        testsRootURL: compatibilityTestsURL,
+        tests: automaticCompatibilityTests,
+        testStarted: compatibilityTestStarted,
+        progressHandler: compatibilityProgressReceived,
+        testCompleted: compatibilityTestCompleted
+      )
 
       currentCompatibilityTestName = nil
       scriptProgress = nil
       isRunningCompatibilitySuite = false
       isRunning = false
-      compatibilitySuiteCompletedAt = Date()
-      if wasStopped {
+      compatibilitySuiteStartedAt = report.startedAt
+      compatibilitySuiteCompletedAt = report.completedAt
+      if report.completion == .stopped {
         status = .cancelled
-      } else if failedCompatibilityTestCount > 0 {
+      } else if report.failedCount > 0 {
         status = .failed
       } else {
         status = .completed
@@ -611,15 +567,26 @@ final class ScriptRunnerModel {
     isRunning = false
   }
 
-  private func compatibilityMessage(
-    for result: ScriptExecutionResult,
-    expected: CompatibilityExpectedOutcome?,
-    failures: [String]
-  ) -> String? {
-    if failures.isEmpty {
-      return "Matched \(expected?.displayName ?? result.status.displayName)."
-    }
-    return "Assertion mismatch: " + failures.joined(separator: "; ") + "."
+  private func compatibilityTestStarted(_ test: CompatibilityTestDefinition) {
+    currentCompatibilityTestName = test.displayName
+    compatibilityResults[test.id] = .running
+    guard let rootURL = Self.bundledCompatibilityTestsURL else { return }
+    executedScriptPaths.insert(Self.scriptIdentity(for: rootURL.appending(path: test.relativePath)))
+  }
+
+  private func compatibilityProgressReceived(
+    _ test: CompatibilityTestDefinition,
+    _ snapshot: ScriptProgressSnapshot
+  ) {
+    scriptProgress = snapshot
+  }
+
+  private func compatibilityTestCompleted(
+    _ test: CompatibilityTestDefinition,
+    _ testResult: CompatibilityTestResult
+  ) {
+    compatibilityResults[test.id] = testResult
+    scriptProgress = nil
   }
 
   private func runScriptedDirectoryAutomatically(directoryURL: URL) {
