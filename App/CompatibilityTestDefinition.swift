@@ -11,20 +11,58 @@ struct CompatibilityTestDefinition: Identifiable, Sendable {
   var id: String { relativePath }
 
   static let all: [CompatibilityTestDefinition] = [
-    automatic("Sources/01-Core/BasicReturn.applescript"),
-    automatic("Sources/01-Core/HandlerRun.applescript"),
+    automatic(
+      "Sources/01-Core/BasicReturn.applescript",
+      expected: .completed(sourceEquals: "\"Hello from ScriptRunnerLab\"")
+    ),
+    automatic(
+      "Sources/01-Core/HandlerRun.applescript",
+      expected: .completed(sourceEquals: "\"Handler OK\"")
+    ),
     automatic(
       "Sources/01-Core/IntentionalRuntimeError.applescript",
-      expected: .status(.failed, errorNumber: -2700)
+      expected: .status(
+        .failed,
+        errorNumber: -2700,
+        assertions: [
+          .errorMessageEquals("Intentional ScriptRunnerLab runtime error"),
+          .hasSourceRange
+        ]
+      )
     ),
     automatic(
       "Sources/01-Core/IntentionalSyntaxError.applescript",
-      expected: .status(.compileError, errorNumber: -2741)
+      expected: .status(
+        .compileError,
+        errorNumber: -2741,
+        assertions: [
+          .errorMessageEquals("Expected “\"” but found end of script."),
+          .hasSourceRange
+        ]
+      )
     ),
-    automatic("Sources/01-Core/LargeResult.applescript"),
-    automatic("Sources/01-Core/PathToMe.applescript"),
-    automatic("Sources/01-Core/ResultTypes.applescript"),
-    automatic("Sources/01-Core/UnicodeAndMultiline.applescript"),
+    automatic(
+      "Sources/01-Core/LargeResult.applescript",
+      expected: .completed(
+        sourceEquals: "{" + (1...1000).map(String.init).joined(separator: ", ") + "}"
+      )
+    ),
+    automatic(
+      "Sources/01-Core/PathToMe.applescript",
+      expected: .completed(sourceContains: "PathToMe.applescript")
+    ),
+    automatic(
+      "Sources/01-Core/ResultTypes.applescript",
+      expected: .completed(
+        sourceEquals: "{message:\"Hello\", integerValue:42, realValue:3.5, booleanValue:true, emptyValue:missing value, nestedValues:{\"alpha\", 2, false}}"
+      )
+    ),
+    automatic(
+      "Sources/01-Core/UnicodeAndMultiline.applescript",
+      expected: .completed(
+        sourceEquals: "\"Café — 日本語 — مرحبًا\rSecond line\nThird line\""
+      )
+    ),
     manual(
       "Sources/02-Isolation/DelayForCancellation.applescript",
       reason: "Requires the user to press Cancel during execution."
@@ -43,14 +81,28 @@ struct CompatibilityTestDefinition: Identifiable, Sendable {
     ),
     automatic(
       "Sources/03-Automation/MissingApplication.applescript",
-      expected: .failure
+      expected: .status(
+        .compileError,
+        errorNumber: -1728,
+        assertions: [
+          .errorMessageContains("org.scriptrunnerlab.missing-application"),
+          .hasSourceRange
+        ]
+      )
     ),
     manual(
       "Sources/03-Automation/MultipleApplications.applescript",
       reason: "May request Automation permission for multiple applications."
     ),
-    automatic("Sources/04-UI/BuiltInProgress.applescript", timeout: 20),
-    automatic("Sources/04-UI/ShellCommand.applescript"),
+    automatic(
+      "Sources/04-UI/BuiltInProgress.applescript",
+      expected: .completed(sourceEquals: "\"Built-in progress completed\""),
+      timeout: 20
+    ),
+    automatic(
+      "Sources/04-UI/ShellCommand.applescript",
+      expected: .completed(sourceEquals: "\"Shell command OK\"")
+    ),
     manual(
       "Sources/04-UI/StandardDialog.applescript",
       reason: "Requires a dialog response."
@@ -59,9 +111,18 @@ struct CompatibilityTestDefinition: Identifiable, Sendable {
       "Sources/04-UI/UserCancellation.applescript",
       reason: "Requires the user to cancel a dialog."
     ),
-    automatic("Sources/05-AppleScriptObjC/AppKit.applescript"),
-    automatic("Sources/05-AppleScriptObjC/Foundation.applescript"),
-    automatic("Sources/05-AppleScriptObjC/FoundationFileIO.applescript"),
+    automatic(
+      "Sources/05-AppleScriptObjC/AppKit.applescript",
+      expected: .completed(sourceIntegerAtLeast: 1)
+    ),
+    automatic(
+      "Sources/05-AppleScriptObjC/Foundation.applescript",
+      expected: .completed(sourceEquals: "\"SCRIPTRUNNERLAB\"")
+    ),
+    automatic(
+      "Sources/05-AppleScriptObjC/FoundationFileIO.applescript",
+      expected: .completed(sourceEquals: "\"Foundation file IO OK\"")
+    ),
     optional(
       "Sources/06-Libraries/BridgePlus.applescript",
       reason: "Requires BridgePlus to be installed."
@@ -70,7 +131,17 @@ struct CompatibilityTestDefinition: Identifiable, Sendable {
       "Sources/06-Libraries/DialogToolkitPlus.applescript",
       reason: "Requires Dialog Toolkit Plus to be installed."
     ),
-    automatic("Sources/06-Libraries/MissingLibrary.applescript", expected: .failure),
+    automatic(
+      "Sources/06-Libraries/MissingLibrary.applescript",
+      expected: .status(
+        .compileError,
+        errorNumber: -1728,
+        assertions: [
+          .errorMessageContains("ScriptRunnerLab Missing Library Fixture"),
+          .hasSourceRange
+        ]
+      )
+    ),
     optional(
       "Sources/06-Libraries/MyriadTables.applescript",
       reason: "Requires Myriad Tables and user interaction."
@@ -79,11 +150,33 @@ struct CompatibilityTestDefinition: Identifiable, Sendable {
       "Sources/06-Libraries/SQLiteLib2.applescript",
       reason: "Requires SQLite Lib2 to be installed."
     ),
-    automatic("Sources/08-Persistence/PersistentProperty.applescript"),
-    automatic("Artifacts/BasicReturn.scpt"),
-    automatic("Artifacts/PersistentProperty.scpt"),
-    automatic("Artifacts/BundleResource.scptd"),
-    automatic("Artifacts/BasicReturnApplet.app", timeout: 20),
+    automatic(
+      "Sources/08-Persistence/PersistentProperty.applescript",
+      expected: .completed(sourceEquals: "1")
+    ),
+    automatic(
+      "Artifacts/BasicReturn.scpt",
+      expected: .completed(sourceEquals: "\"Hello from ScriptRunnerLab\"")
+    ),
+    automatic(
+      "Artifacts/PersistentProperty.scpt",
+      expected: .completed(sourceEquals: "1")
+    ),
+    automatic(
+      "Artifacts/BundleResource.scptd",
+      expected: .completed(
+        assertions: [
+          .sourceContains("resourceContents:\"Bundled resource OK"),
+          .sourceContains("scriptLocation:"),
+          .sourceContains("BundleResource.scptd")
+        ]
+      )
+    ),
+    automatic(
+      "Artifacts/BasicReturnApplet.app",
+      expected: .completed(sourceEquals: "Applet completed successfully."),
+      timeout: 20
+    ),
     manual(
       "Artifacts/AppletLifecycle.app",
       reason: "Stays open until the user cancels it or a timeout is selected."
@@ -154,32 +247,133 @@ enum CompatibilityTestDisposition: Equatable, Sendable {
   }
 }
 
-enum CompatibilityExpectedOutcome: Sendable {
-  case completed
-  case status(ScriptExecutionStatus, errorNumber: Int?)
-  case failure
+struct CompatibilityExpectedOutcome: Sendable {
+  var status: ScriptExecutionStatus
+  var errorNumber: Int?
+  var assertions: [CompatibilityResultAssertion]
 
-  func matches(_ result: ScriptExecutionResult) -> Bool {
-    switch self {
-    case .completed:
-      result.status == .completed
-    case .status(let status, let errorNumber):
-      result.status == status && (errorNumber == nil || result.errorNumber == errorNumber)
-    case .failure:
-      result.status == .failed || result.status == .compileError
+  static let completed = CompatibilityExpectedOutcome(
+    status: .completed,
+    errorNumber: nil,
+    assertions: []
+  )
+
+  static func completed(sourceEquals value: String) -> CompatibilityExpectedOutcome {
+    completed(assertions: [.sourceEquals(value)])
+  }
+
+  static func completed(sourceContains value: String) -> CompatibilityExpectedOutcome {
+    completed(assertions: [.sourceContains(value)])
+  }
+
+  static func completed(sourceIntegerAtLeast value: Int) -> CompatibilityExpectedOutcome {
+    completed(assertions: [.sourceIntegerAtLeast(value)])
+  }
+
+  static func completed(
+    assertions: [CompatibilityResultAssertion]
+  ) -> CompatibilityExpectedOutcome {
+    CompatibilityExpectedOutcome(status: .completed, errorNumber: nil, assertions: assertions)
+  }
+
+  static func status(
+    _ status: ScriptExecutionStatus,
+    errorNumber: Int? = nil,
+    assertions: [CompatibilityResultAssertion] = []
+  ) -> CompatibilityExpectedOutcome {
+    CompatibilityExpectedOutcome(
+      status: status,
+      errorNumber: errorNumber,
+      assertions: assertions
+    )
+  }
+
+  func failures(for result: ScriptExecutionResult) -> [String] {
+    var failures: [String] = []
+    if result.status != status {
+      failures.append("expected \(status.displayName), observed \(result.status.displayName)")
     }
+    if let errorNumber, result.errorNumber != errorNumber {
+      failures.append("expected error \(errorNumber), observed \(result.errorNumber.map(String.init) ?? "none")")
+    }
+    failures.append(contentsOf: assertions.compactMap { $0.failure(for: result) })
+    return failures
   }
 
   var displayName: String {
-    switch self {
-    case .completed: "Completed"
-    case .status(let status, let errorNumber):
-      if let errorNumber {
-        "\(status.displayName) (\(errorNumber))"
-      } else {
-        status.displayName
-      }
-    case .failure: "Expected Error"
+    if let errorNumber {
+      return "\(status.displayName) (\(errorNumber)) + \(assertions.count) assertion(s)"
     }
+    if assertions.isEmpty {
+      return status.displayName
+    }
+    return "\(status.displayName) + \(assertions.count) assertion(s)"
+  }
+
+  var summaryDescription: String {
+    var components = [errorNumber.map { "\(status.displayName) (\($0))" } ?? status.displayName]
+    components.append(contentsOf: assertions.map(\.summaryDescription))
+    return components.joined(separator: "; ")
+  }
+}
+
+enum CompatibilityResultAssertion: Sendable {
+  case sourceEquals(String)
+  case sourceContains(String)
+  case sourceIntegerAtLeast(Int)
+  case errorMessageEquals(String)
+  case errorMessageContains(String)
+  case hasSourceRange
+
+  var summaryDescription: String {
+    switch self {
+    case .sourceEquals(let expected):
+      if expected.count > 120 {
+        return "source equals an exact \(expected.count)-character value"
+      }
+      return "source equals \(expected.debugDescription)"
+    case .sourceContains(let expected):
+      return "source contains \(expected.debugDescription)"
+    case .sourceIntegerAtLeast(let minimum):
+      return "source is an integer ≥ \(minimum)"
+    case .errorMessageEquals(let expected):
+      return "error message equals \(expected.debugDescription)"
+    case .errorMessageContains(let expected):
+      return "error message contains \(expected.debugDescription)"
+    case .hasSourceRange:
+      return "structured source range is present"
+    }
+  }
+
+  func failure(for result: ScriptExecutionResult) -> String? {
+    switch self {
+    case .sourceEquals(let expected):
+      guard result.sourceResultDescription == expected else {
+        return "source result did not exactly match"
+      }
+    case .sourceContains(let expected):
+      guard result.sourceResultDescription?.contains(expected) == true else {
+        return "source result did not contain \(expected.debugDescription)"
+      }
+    case .sourceIntegerAtLeast(let minimum):
+      guard let source = result.sourceResultDescription,
+            let value = Int(source),
+            value >= minimum else {
+        return "source result was not an integer of at least \(minimum)"
+      }
+    case .errorMessageEquals(let expected):
+      guard result.errorMessage == expected else {
+        return "error message did not exactly match"
+      }
+    case .errorMessageContains(let expected):
+      guard result.errorMessage?.contains(expected) == true else {
+        return "error message did not contain \(expected.debugDescription)"
+      }
+    case .hasSourceRange:
+      guard result.errorRange != nil else {
+        return "structured source range was missing"
+      }
+    }
+    return nil
   }
 }

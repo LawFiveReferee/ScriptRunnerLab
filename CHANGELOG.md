@@ -3,20 +3,27 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 13
+- Build: 14
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 13
+### Build 14
+
+- Added exact content assertions for deterministic automatic compatibility tests.
+- Added structured validation of expected error status, number, message, and source range.
+- Added dynamic constraints for machine-dependent values such as AppKit screen count and bundle paths.
+- Expanded copied compatibility summaries with environment, timing, expectations, observations, and duration.
+
+## Build history
+
+### Version 1.0, build 13
 
 - Added a sequential unattended compatibility suite with one isolated helper process per test.
 - Added expected success and expected-error validation with live per-test results.
 - Added Stop, progress, manual and optional test classifications, and a copyable summary.
 - Suite executions use the shared JSON-lines execution log.
-
-## Build history
 
 ### Version 1.0, build 12
 

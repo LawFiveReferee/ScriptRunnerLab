@@ -456,7 +456,7 @@ struct ContentView: View {
 
   private var compatibilitySummaryLabel: String {
     if !runner.hasCompatibilityResults && !runner.isRunningCompatibilitySuite {
-      return "Not run"
+      return "Not run • \(runner.compatibilityContentAssertionCount) assertions"
     }
     return "\(runner.completedCompatibilityTestCount) of \(runner.automaticCompatibilityTests.count) • \(runner.passedCompatibilityTestCount) passed • \(runner.failedCompatibilityTestCount) failed"
   }

@@ -22,6 +22,8 @@ final class ScriptRunnerModel {
   var compatibilityResults: [String: CompatibilityTestResult] = [:]
   var isRunningCompatibilitySuite = false
   var currentCompatibilityTestName: String?
+  var compatibilitySuiteStartedAt: Date?
+  var compatibilitySuiteCompletedAt: Date?
 
   private static let favoritesKey = "favoriteScripts"
   private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
@@ -98,6 +100,10 @@ final class ScriptRunnerModel {
 
   var hasCompatibilityResults: Bool {
     completedCompatibilityTestCount > 0
+  }
+
+  var compatibilityContentAssertionCount: Int {
+    automaticCompatibilityTests.reduce(0) { $0 + ($1.expectedOutcome?.assertions.count ?? 0) }
   }
 
   func outputText(for mode: ResultDisplayMode) -> String {
@@ -289,6 +295,8 @@ final class ScriptRunnerModel {
     status = .running
     result = nil
     scriptProgress = nil
+    compatibilitySuiteStartedAt = Date()
+    compatibilitySuiteCompletedAt = nil
     let startedAt = Date()
 
     executionTask = Task { [weak self] in
@@ -419,7 +427,9 @@ final class ScriptRunnerModel {
           )
         }
 
-        let passed = test.expectedOutcome?.matches(executionResult) == true
+        let expectationFailures = test.expectedOutcome?.failures(for: executionResult)
+          ?? ["The test has no expected outcome."]
+        let passed = expectationFailures.isEmpty
         compatibilityResults[test.id] = CompatibilityTestResult(
           state: passed ? .passed : .failed,
           observedStatus: executionResult.status,
@@ -427,7 +437,7 @@ final class ScriptRunnerModel {
           message: compatibilityMessage(
             for: executionResult,
             expected: test.expectedOutcome,
-            passed: passed
+            failures: expectationFailures
           ),
           duration: executionResult.executionDuration
         )
@@ -439,6 +449,7 @@ final class ScriptRunnerModel {
       scriptProgress = nil
       isRunningCompatibilitySuite = false
       isRunning = false
+      compatibilitySuiteCompletedAt = Date()
       if wasStopped {
         status = .cancelled
       } else if failedCompatibilityTestCount > 0 {
@@ -517,7 +528,16 @@ final class ScriptRunnerModel {
       "ScriptRunnerLab Compatibility Suite",
       "Version: \(version) (\(build))",
       "Generated: \(Date().formatted(.iso8601))",
+      "Started: \(compatibilitySuiteStartedAt?.formatted(.iso8601) ?? "Not recorded")",
+      "Completed: \(compatibilitySuiteCompletedAt?.formatted(.iso8601) ?? "Not completed")",
+      "Engine: OSAKit and NSWorkspace applet launch",
+      "Isolation: ScriptRunnerHelper (one process per request)",
+      "Sandbox: disabled",
+      "macOS: \(ProcessInfo.processInfo.operatingSystemVersionString)",
+      "Architecture: \(architectureName)",
+      "Execution log: \(executionLogURL.path(percentEncoded: false))",
       "Automatic tests: \(automaticCompatibilityTests.count)",
+      "Content assertions: \(compatibilityContentAssertionCount)",
       "Passed: \(passedCompatibilityTestCount)",
       "Failed: \(failedCompatibilityTestCount)",
       ""
@@ -527,14 +547,20 @@ final class ScriptRunnerModel {
       let testResult = compatibilityResults[test.id]
       let state = testResult?.state.displayName.uppercased() ?? "NOT RUN"
       var detail = "[\(state)] \(test.relativePath)"
+      if let expectation = test.expectedOutcome {
+        detail += " — expected: \(expectation.summaryDescription)"
+      }
       if let observedStatus = testResult?.observedStatus {
-        detail += " — \(observedStatus.displayName)"
+        detail += " — observed: \(observedStatus.displayName)"
       }
       if let errorNumber = testResult?.errorNumber {
         detail += " (\(errorNumber))"
       }
       if let message = testResult?.message, !message.isEmpty {
         detail += " — \(message)"
+      }
+      if let duration = testResult?.duration {
+        detail += " — \(duration.formatted(.number.precision(.fractionLength(3)))) s"
       }
       lines.append(detail)
     }
@@ -595,23 +621,12 @@ final class ScriptRunnerModel {
   private func compatibilityMessage(
     for result: ScriptExecutionResult,
     expected: CompatibilityExpectedOutcome?,
-    passed: Bool
+    failures: [String]
   ) -> String? {
-    if passed {
-      if result.status == .completed {
-        return result.sourceResultDescription ?? "Completed as expected."
-      }
-      return "Observed the expected \(result.status.displayName)."
+    if failures.isEmpty {
+      return "Matched \(expected?.displayName ?? result.status.displayName)."
     }
-
-    let expectedDescription = expected?.displayName ?? "Unknown"
-    let observedDescription: String
-    if let errorNumber = result.errorNumber {
-      observedDescription = "\(result.status.displayName) (\(errorNumber))"
-    } else {
-      observedDescription = result.status.displayName
-    }
-    return "Expected \(expectedDescription); observed \(observedDescription)."
+    return "Assertion mismatch: " + failures.joined(separator: "; ") + "."
   }
 
   private func addSelectedScriptToFavorites() {
