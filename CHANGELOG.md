@@ -3,19 +3,25 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 18
+- Build: 19
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 18
+### Build 19
+
+- Added reusable Codable collection-report, entry-result, and execution-mode models to ScriptRunnerKit.
+- ScriptRunnerLab now formats and returns automatic collection results through the shared package model.
+- Added package regression tests for result ordering, success/error formatting, and JSON round trips.
+
+## Build history
+
+### Version 1.0, build 18
 
 - Automatic AppleScript collection commands now return and display every script result.
 - Each result follows its relative script name and includes structured failure details when applicable.
 - Automatic Apple events suspend and resume asynchronously so the app stays responsive during execution.
-
-## Build history
 
 ### Version 1.0, build 17
 

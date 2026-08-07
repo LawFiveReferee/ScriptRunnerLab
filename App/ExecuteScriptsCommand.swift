@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import ScriptRunnerKit
 
 @objc(ExecuteScriptsCommand)
 final class ExecuteScriptsCommand: NSScriptCommand {
@@ -55,7 +56,7 @@ final class ExecuteScriptsCommand: NSScriptCommand {
     return nil
   }
 
-  private func executionMode() -> ScriptDirectoryExecutionMode {
+  private func executionMode() -> ScriptCollectionExecutionMode {
     appleEvent?.eventID == Self.interactiveEventID ? .interactively : .automatically
   }
 

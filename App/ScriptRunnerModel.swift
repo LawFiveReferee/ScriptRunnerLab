@@ -27,6 +27,7 @@ final class ScriptRunnerModel {
   var compatibilitySuiteStartedAt: Date?
   var compatibilitySuiteCompletedAt: Date?
   var scriptedInteractivePrompt: ScriptedInteractivePrompt?
+  var scriptCollectionReport: ScriptCollectionExecutionReport?
 
   private static let favoritesKey = "favoriteScripts"
   private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
@@ -37,6 +38,7 @@ final class ScriptRunnerModel {
   private var scriptsFolderMonitors: [DispatchSourceFileSystemObject] = []
   private var scriptedEntries: [ScriptFolderEntry] = []
   private var scriptedEntryIndex = 0
+  private var scriptedDirectoryURL: URL?
   private var scriptedAutomaticCompletion: ((String) -> Void)?
 
   init() {
@@ -232,7 +234,7 @@ final class ScriptRunnerModel {
   @discardableResult
   func executeScripts(
     in directoryURL: URL,
-    mode: ScriptDirectoryExecutionMode,
+    mode: ScriptCollectionExecutionMode,
     completion: ((String) -> Void)? = nil
   ) -> Bool {
     guard !isRunning else {
@@ -245,8 +247,10 @@ final class ScriptRunnerModel {
       return false
     }
     scriptedEntries = entries
+    scriptedDirectoryURL = directoryURL
     scriptedEntryIndex = 0
     scriptedInteractivePrompt = nil
+    scriptCollectionReport = nil
     scriptedAutomaticCompletion = completion
     switch mode {
     case .automatically:
@@ -275,6 +279,7 @@ final class ScriptRunnerModel {
   func quitScriptedInteractiveRun() {
     scriptedInteractivePrompt = nil
     scriptedEntries = []
+    scriptedDirectoryURL = nil
     scriptedEntryIndex = 0
     status = .cancelled
   }
@@ -712,25 +717,34 @@ final class ScriptRunnerModel {
     executionTask = Task { [weak self] in
       guard let self else { return }
       var encounteredFailure = false
-      var sections: [String] = []
+      var entries: [ScriptCollectionEntryResult] = []
       for entry in scriptedEntries {
         if Task.isCancelled { break }
         descriptor = entry.descriptor
         executedScriptPaths.insert(Self.scriptIdentity(for: entry.url))
         let executionResult = await executeScriptedEntry(entry)
-        sections.append(scriptedResultSection(for: entry, result: executionResult))
+        entries.append(
+          ScriptCollectionEntryResult(relativePath: entry.relativePath, result: executionResult)
+        )
         encounteredFailure = encounteredFailure || executionResult.status != .completed
         await recordExecution(descriptor: entry.descriptor, result: executionResult)
       }
       isRunning = false
       status = Task.isCancelled ? .cancelled : (encounteredFailure ? .failed : .completed)
-      let report = sections.joined(separator: "\n\n")
       let completedAt = Date()
+      let report = ScriptCollectionExecutionReport(
+        mode: .automatically,
+        directoryPath: scriptedDirectoryURL?.path(percentEncoded: false) ?? "",
+        startedAt: batchStartedAt,
+        completedAt: completedAt,
+        entries: entries
+      )
+      scriptCollectionReport = report
       result = ScriptExecutionResult(
         requestID: UUID(),
         status: .completed,
-        sourceResultDescription: report,
-        rawResultDescription: report,
+        sourceResultDescription: report.text,
+        rawResultDescription: report.text,
         errorNumber: nil,
         errorMessage: nil,
         errorBriefMessage: nil,
@@ -739,9 +753,10 @@ final class ScriptRunnerModel {
         startedAt: batchStartedAt,
         completedAt: completedAt
       )
-      scriptedAutomaticCompletion?(report)
+      scriptedAutomaticCompletion?(report.text)
       scriptedAutomaticCompletion = nil
       scriptedEntries = []
+      scriptedDirectoryURL = nil
       scriptedEntryIndex = 0
       executionTask = nil
     }
@@ -805,31 +820,10 @@ final class ScriptRunnerModel {
     }
   }
 
-  private func scriptedResultSection(
-    for entry: ScriptFolderEntry,
-    result: ScriptExecutionResult
-  ) -> String {
-    let value: String
-    if result.status == .completed {
-      value = result.sourceResultDescription
-        ?? result.rawResultDescription
-        ?? "Script completed without a result."
-    } else {
-      var errorLines = [result.status.displayName]
-      if let message = result.errorMessage ?? result.errorBriefMessage {
-        errorLines.append(message)
-      }
-      if let errorNumber = result.errorNumber {
-        errorLines.append("Error number: \(errorNumber)")
-      }
-      value = errorLines.joined(separator: "\n")
-    }
-    return "\(entry.relativePath)\n\(value)"
-  }
-
   private func finishScriptedDirectoryRun() {
     scriptedInteractivePrompt = nil
     scriptedEntries = []
+    scriptedDirectoryURL = nil
     scriptedEntryIndex = 0
     isRunning = false
     status = .completed
