@@ -5,7 +5,19 @@ ScriptRunnerKit is the reusable execution layer. A host application embeds a sep
 ## Host target
 
 1. Add `Packages/ScriptRunnerKit` as a local Swift package dependency and link the `ScriptRunnerKit` product.
-2. Add a Cocoa application target using `Helper/ScriptRunnerHelperMain.swift` and link that target to ScriptRunnerKit.
+2. Add a Cocoa application target with a minimal launcher and link that target to ScriptRunnerKit:
+
+   ```swift
+   import ScriptRunnerKit
+
+   @main
+   enum ScriptRunnerHelperMain {
+     @MainActor
+     static func main() {
+       ScriptRunnerHelperRuntime.run()
+     }
+   }
+   ```
 3. Set the helper's `LSUIElement` value to `true` so it runs as an agent without a Dock icon.
 4. Embed and sign the helper application in the host at `Contents/Helpers/ScriptRunnerHelper.app`.
 5. Keep the host and helper non-sandboxed for the compatibility goals of this project.

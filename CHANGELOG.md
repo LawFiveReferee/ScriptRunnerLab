@@ -3,21 +3,29 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 26
+- Build: 27
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 26
+### Build 27
+
+- Moved the Cocoa helper lifecycle and request-processing runtime into ScriptRunnerKit.
+- Shared runtime now owns request decoding, OSAKit execution, progress output, applet launch supervision, termination handling, and result writing.
+- Reduced ScriptRunnerLabHelper to a minimal launcher that calls ScriptRunnerHelperRuntime.
+- Added a typed, validated helper invocation model and argument-parser regression coverage.
+- Verified both ordinary AppleScript execution and short-lived applet execution through the package-owned helper runtime.
+
+## Build history
+
+### Version 1.0, build 26
 
 - Packaged the complete baseline CompatibilityTests fixture set as ScriptRunnerKit resources.
 - Added CompatibilityTestResources for locating the shared fixture root and individual manifest entries.
 - Removed ScriptRunnerLab's separate resource-copy configuration and switched it to the package resource API.
 - Preserved compiled scripts, script bundles, applets, bundled resources, and executable permissions.
 - Added package regression coverage ensuring every manifest fixture exists and packaged applets remain executable.
-
-## Build history
 
 ### Version 1.0, build 25
 
