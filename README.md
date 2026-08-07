@@ -19,6 +19,7 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 - Uses ScriptRunnerKit's host-neutral interactive sequence for repeat, advance, quit, and ordered results
 - Uses ScriptRunnerService as the shared host API for execution, collections, cancellation, progress, and logging
 - Uses ScriptRunnerKit's shared baseline manifest and compatibility-suite assertion runner
+- Copies compatibility summaries as shared human-readable text or portable JSON
 - Reports structured AppleScript errors, source ranges, raw results, duration, UTI, and architecture
 - Displays results as AE Print or AppleScript source
 - Opens scripts in the user's default editor
@@ -64,7 +65,7 @@ OSAKit does not publicly expose AppleScript's four built-in progress values to h
 
 ## Next milestone
 
-Add a portable compatibility-suite summary model so other hosts can save or export the same detailed baseline report.
+Package the baseline compatibility fixtures for simpler reuse by additional host applications.
 
 ## Scope
 

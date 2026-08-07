@@ -458,6 +458,13 @@ final class ScriptRunnerModel {
     NSPasteboard.general.setString(compatibilitySummaryText, forType: .string)
   }
 
+  func copyCompatibilitySummaryJSON() {
+    guard let data = try? compatibilitySummary.jsonData(),
+          let string = String(data: data, encoding: .utf8) else { return }
+    NSPasteboard.general.clearContents()
+    NSPasteboard.general.setString(string, forType: .string)
+  }
+
   func clearResult() {
     result = nil
     status = .ready
@@ -478,56 +485,19 @@ final class ScriptRunnerModel {
   }
 
   private var compatibilitySummaryText: String {
-    let bundle = Bundle.main
-    let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
-    let build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "Unknown"
-    var lines = [
-      "ScriptRunnerLab Compatibility Suite",
-      "Version: \(version) (\(build))",
-      "Generated: \(Date().formatted(.iso8601))",
-      "Started: \(compatibilitySuiteStartedAt?.formatted(.iso8601) ?? "Not recorded")",
-      "Completed: \(compatibilitySuiteCompletedAt?.formatted(.iso8601) ?? "Not completed")",
-      "Engine: OSAKit and NSWorkspace applet launch",
-      "Isolation: ScriptRunnerHelper (one process per request)",
-      "Sandbox: disabled",
-      "macOS: \(ProcessInfo.processInfo.operatingSystemVersionString)",
-      "Architecture: \(Self.currentArchitectureName)",
-      "Execution log: \(executionLogURL.path(percentEncoded: false))",
-      "Automatic tests: \(automaticCompatibilityTests.count)",
-      "Content assertions: \(compatibilityContentAssertionCount)",
-      "Passed: \(passedCompatibilityTestCount)",
-      "Failed: \(failedCompatibilityTestCount)",
-      ""
-    ]
+    compatibilitySummary.text
+  }
 
-    for test in automaticCompatibilityTests {
-      let testResult = compatibilityResults[test.id]
-      let state = testResult?.state.displayName.uppercased() ?? "NOT RUN"
-      var detail = "[\(state)] \(test.relativePath)"
-      if let expectation = test.expectedOutcome {
-        detail += " — expected: \(expectation.summaryDescription)"
-      }
-      if let observedStatus = testResult?.observedStatus {
-        detail += " — observed: \(observedStatus.displayName)"
-      }
-      if let errorNumber = testResult?.errorNumber {
-        detail += " (\(errorNumber))"
-      }
-      if let message = testResult?.message, !message.isEmpty {
-        detail += " — \(message)"
-      }
-      if let duration = testResult?.duration {
-        detail += " — \(duration.formatted(.number.precision(.fractionLength(3)))) s"
-      }
-      lines.append(detail)
-    }
-
-    lines.append("")
-    lines.append("Manual and optional tests not run automatically:")
-    for test in deferredCompatibilityTests {
-      lines.append("[\(test.disposition.displayName.uppercased())] \(test.relativePath) — \(test.disposition.reason ?? "")")
-    }
-    return lines.joined(separator: "\n")
+  private var compatibilitySummary: CompatibilitySuiteSummary {
+    CompatibilitySuiteSummary(
+      suiteName: "ScriptRunnerLab Compatibility Suite",
+      startedAt: compatibilitySuiteStartedAt,
+      completedAt: compatibilitySuiteCompletedAt,
+      configuration: runnerService.configuration,
+      automaticTests: automaticCompatibilityTests,
+      results: compatibilityResults,
+      deferredTests: deferredCompatibilityTests
+    )
   }
 
   private var defaultEditorURL: URL? {

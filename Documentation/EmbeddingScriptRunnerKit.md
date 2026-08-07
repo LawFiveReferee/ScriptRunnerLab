@@ -76,6 +76,8 @@ Embed the repository's `CompatibilityTests` folder and pass its bundle URL to `e
 
 Manual and optional definitions are available through `CompatibilityTestDefinition.deferredTests`. Hosts decide how and when to present those permission-sensitive, interactive, or third-party tests.
 
+Create a `CompatibilitySuiteSummary` from the host configuration, manifest, and accumulated results to export the same detailed report as either `text` or versioned JSON from `jsonData()`.
+
 ## Distribution checks
 
 Before distributing a host, verify the outer app and embedded helper with `codesign --verify --deep --strict`, then test Developer ID signing, hardened runtime, notarization, quarantine, Automation permission prompts, and third-party framework architectures on a clean Mac.

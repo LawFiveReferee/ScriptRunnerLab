@@ -3,21 +3,29 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 24
+- Build: 25
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 24
+### Build 25
+
+- Added a versioned, Codable compatibility-suite summary model to ScriptRunnerKit.
+- Shared summaries include host/build identity, environment, timing, expectations, observations, deferred tests, and log location.
+- Added shared human-readable formatting and stable ISO 8601 JSON export.
+- ScriptRunnerLab's Copy Summary now uses the package formatter and the UI adds Copy JSON.
+- Added JSON round-trip and formatted-report regression coverage.
+
+## Build history
+
+### Version 1.0, build 24
 
 - Moved the baseline compatibility manifest, expectations, assertions, and result models into ScriptRunnerKit.
 - Added reusable sequential compatibility-suite execution to ScriptRunnerService with live test and progress callbacks.
 - Preserved the established baseline of 20 automatic tests and 26 content assertions.
 - Migrated ScriptRunnerLab's compatibility window to the shared suite runner while retaining its existing live UI and summaries.
 - Added package regression coverage for manifest integrity, ordered results, passing assertions, and assertion failures.
-
-## Build history
 
 ### Version 1.0, build 23
 

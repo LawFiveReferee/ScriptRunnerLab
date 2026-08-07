@@ -25,7 +25,7 @@ public struct CompatibilityTestResult: Sendable {
   }
 }
 
-public enum CompatibilityTestRunState: String, Equatable, Sendable {
+public enum CompatibilityTestRunState: String, Codable, Equatable, Sendable {
   case pending
   case running
   case passed

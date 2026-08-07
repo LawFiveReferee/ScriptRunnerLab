@@ -12,6 +12,49 @@ final class CompatibilitySuiteTests: XCTestCase {
     )
   }
 
+  func testPortableSummaryRoundTripsAndFormatsHostDetails() throws {
+    let automaticTest = makeTest(path: "Pass.applescript", expectedSource: "1")
+    let deferredTest = CompatibilityTestDefinition(
+      relativePath: "Dialog.applescript",
+      displayName: "Dialog.applescript",
+      disposition: .manual(reason: "Requires a response."),
+      expectedOutcome: nil,
+      timeout: 0
+    )
+    let configuration = ScriptRunnerHostConfiguration(
+      helperExecutableURL: URL(fileURLWithPath: "/tmp/Helper"),
+      workingDirectoryName: "Tests",
+      logURL: URL(fileURLWithPath: "/tmp/Execution.jsonl"),
+      host: .init(name: "Host App", bundleIdentifier: "org.example.host", version: "2.0", build: "9"),
+      environment: .init(
+        operatingSystem: "Test macOS",
+        architecture: "Test Architecture",
+        isSandboxed: false,
+        isolation: "Test Helper"
+      )
+    )
+    let summary = CompatibilitySuiteSummary(
+      suiteName: "Host Compatibility Suite",
+      generatedAt: Date(timeIntervalSince1970: 30),
+      startedAt: Date(timeIntervalSince1970: 10),
+      completedAt: Date(timeIntervalSince1970: 20),
+      configuration: configuration,
+      automaticTests: [automaticTest],
+      results: [automaticTest.id: CompatibilityTestResult(state: .passed, observedStatus: .completed)],
+      deferredTests: [deferredTest]
+    )
+
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    let decoded = try decoder.decode(CompatibilitySuiteSummary.self, from: summary.jsonData())
+
+    XCTAssertEqual(decoded.host.name, "Host App")
+    XCTAssertEqual(decoded.entries.first?.state, .passed)
+    XCTAssertEqual(decoded.deferredTests.first?.reason, "Requires a response.")
+    XCTAssertTrue(decoded.text.contains("Version: 2.0 (9)"))
+    XCTAssertTrue(decoded.text.contains("[PASSED] Pass.applescript"))
+  }
+
   @MainActor
   func testSuiteRunnerReturnsOrderedPassAndFailureResults() async throws {
     let directory = FileManager.default.temporaryDirectory.appending(

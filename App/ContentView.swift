@@ -354,6 +354,11 @@ struct ContentView: View {
             runner.copyCompatibilitySummary()
           }
           .disabled(!runner.hasCompatibilityResults)
+
+          Button("Copy JSON", systemImage: "curlybraces") {
+            runner.copyCompatibilitySummaryJSON()
+          }
+          .disabled(!runner.hasCompatibilityResults)
         }
 
         if let currentTestName = runner.currentCompatibilityTestName {
