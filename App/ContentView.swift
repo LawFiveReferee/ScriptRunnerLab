@@ -356,7 +356,14 @@ struct ContentView: View {
           "Manual & Optional (\(runner.deferredCompatibilityTests.count))",
           isExpanded: $deferredTestsExpanded
         ) {
-          VStack(spacing: 0) {
+          VStack(alignment: .leading, spacing: 0) {
+            Text("Double-click a test or use Run. The selected Execution timeout applies.")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .padding(.vertical, 7)
+
+            Divider()
+
             ForEach(Array(runner.deferredCompatibilityTests.enumerated()), id: \.element.id) { index, test in
               deferredCompatibilityRow(test)
               if index < runner.deferredCompatibilityTests.count - 1 {
@@ -496,8 +503,8 @@ struct ContentView: View {
 
   private func deferredCompatibilityRow(_ test: CompatibilityTestDefinition) -> some View {
     HStack(alignment: .top, spacing: 10) {
-      Image(systemName: test.disposition == .automatic ? "circle" : "hand.raised")
-        .foregroundStyle(.secondary)
+      Image(systemName: runner.hasExecuted(test) ? "checkmark.circle.fill" : "hand.raised")
+        .foregroundStyle(runner.hasExecuted(test) ? AnyShapeStyle(.green) : AnyShapeStyle(.secondary))
         .frame(width: 18)
 
       VStack(alignment: .leading, spacing: 2) {
@@ -512,12 +519,22 @@ struct ContentView: View {
           .foregroundStyle(.secondary)
       }
       Spacer()
+
+      Button("Run", systemImage: "play.fill") {
+        runDeferredCompatibilityTest(test)
+      }
+      .disabled(runner.isRunning)
     }
     .padding(.vertical, 7)
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(
-      "\(test.displayName), \(test.disposition.displayName), \(test.disposition.reason ?? "")"
-    )
+    .contentShape(Rectangle())
+    .onTapGesture(count: 2) {
+      runDeferredCompatibilityTest(test)
+    }
+    .help("Double-click to run \(test.displayName)")
+  }
+
+  private func runDeferredCompatibilityTest(_ test: CompatibilityTestDefinition) {
+    runner.runCompatibilityTest(test, timeout: executionTimeout.seconds)
   }
 
   private func compatibilitySymbol(for state: CompatibilityTestRunState) -> String {

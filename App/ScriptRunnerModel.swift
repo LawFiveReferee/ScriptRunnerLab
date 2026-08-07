@@ -204,6 +204,25 @@ final class ScriptRunnerModel {
     executedScriptPaths.contains(Self.scriptIdentity(for: entry.url))
   }
 
+  func hasExecuted(_ test: CompatibilityTestDefinition) -> Bool {
+    guard let url = compatibilityTestURL(for: test) else { return false }
+    return executedScriptPaths.contains(Self.scriptIdentity(for: url))
+  }
+
+  func runCompatibilityTest(
+    _ test: CompatibilityTestDefinition,
+    timeout: TimeInterval
+  ) {
+    guard test.disposition != .automatic, !isRunning else { return }
+    guard let url = compatibilityTestURL(for: test),
+          FileManager.default.fileExists(atPath: url.path) else {
+      showLocalError("The bundled compatibility test could not be found.")
+      return
+    }
+    selectScript(at: url)
+    run(timeout: timeout)
+  }
+
   func refreshScriptsFolder() {
     guard let scriptsFolderURL else { return }
     scriptsFolderEntries = Self.scriptEntries(in: scriptsFolderURL)
@@ -645,6 +664,10 @@ final class ScriptRunnerModel {
     } catch {
       showLocalError("This script could not be added to Favorites. \(error.localizedDescription)")
     }
+  }
+
+  private func compatibilityTestURL(for test: CompatibilityTestDefinition) -> URL? {
+    Self.bundledCompatibilityTestsURL?.appending(path: test.relativePath)
   }
 
   private func selectScript(at url: URL) {

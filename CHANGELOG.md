@@ -3,17 +3,23 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 15
+- Build: 16
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 15
+### Build 16
 
-- Corrected compatibility-suite start-time recording in copied baseline summaries.
+- Added inline Run buttons and double-click execution for Manual and Optional compatibility tests.
+- Manual runs use the selected Execution timeout and the normal isolated helper and logging path.
+- Added per-launch completion checkmarks for manually executed compatibility tests.
 
 ## Build history
+
+### Version 1.0, build 15
+
+- Corrected compatibility-suite start-time recording in copied baseline summaries.
 
 ### Version 1.0, build 14
 
