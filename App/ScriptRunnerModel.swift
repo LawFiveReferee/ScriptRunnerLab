@@ -32,6 +32,7 @@ final class ScriptRunnerModel {
   private static let favoritesKey = "favoriteScripts"
   private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
   private let helperRunner: ScriptHelperProcessRunner
+  private let collectionRunner: ScriptCollectionRunner
   private let executionLogWriter: ScriptExecutionLogWriter
   private var executionTask: Task<Void, Never>?
   private var scriptsFolderAccessURL: URL?
@@ -43,10 +44,12 @@ final class ScriptRunnerModel {
 
   init() {
     let executionLogURL = Self.defaultExecutionLogURL
-    helperRunner = ScriptHelperProcessRunner(
+    let helperRunner = ScriptHelperProcessRunner(
       helperExecutableURL: Self.helperExecutableURL,
       workingDirectoryName: "ScriptRunnerLab"
     )
+    self.helperRunner = helperRunner
+    self.collectionRunner = ScriptCollectionRunner(helperRunner: helperRunner)
     self.executionLogURL = executionLogURL
     self.executionLogWriter = ScriptExecutionLogWriter(fileURL: executionLogURL)
     favorites = Self.loadFavorites()
@@ -714,56 +717,78 @@ final class ScriptRunnerModel {
   }
 
   private func runScriptedDirectoryAutomatically() {
+    guard let directoryURL = scriptedDirectoryURL else { return }
+    let timeout = scriptedExecutionTimeout
     isRunning = true
     status = .running
     result = nil
-    let batchStartedAt = Date()
     executionTask = Task { [weak self] in
       guard let self else { return }
-      var encounteredFailure = false
-      var entries: [ScriptCollectionEntryResult] = []
-      for entry in scriptedEntries {
-        if Task.isCancelled { break }
-        descriptor = entry.descriptor
-        executedScriptPaths.insert(Self.scriptIdentity(for: entry.url))
-        let executionResult = await executeScriptedEntry(entry)
-        entries.append(
-          ScriptCollectionEntryResult(relativePath: entry.relativePath, result: executionResult)
-        )
-        encounteredFailure = encounteredFailure || executionResult.status != .completed
-        await recordExecution(descriptor: entry.descriptor, result: executionResult)
-      }
-      isRunning = false
-      status = Task.isCancelled ? .cancelled : (encounteredFailure ? .failed : .completed)
-      let completedAt = Date()
-      let report = ScriptCollectionExecutionReport(
-        mode: .automatically,
-        directoryPath: scriptedDirectoryURL?.path(percentEncoded: false) ?? "",
-        startedAt: batchStartedAt,
-        completedAt: completedAt,
-        entries: entries
-      )
-      scriptCollectionReport = report
-      result = ScriptExecutionResult(
-        requestID: UUID(),
-        status: .completed,
-        sourceResultDescription: report.text,
-        rawResultDescription: report.text,
-        errorNumber: nil,
-        errorMessage: nil,
-        errorBriefMessage: nil,
-        errorRange: nil,
-        executionDuration: completedAt.timeIntervalSince(batchStartedAt),
-        startedAt: batchStartedAt,
-        completedAt: completedAt
-      )
-      scriptedAutomaticCompletion?(report.text)
-      scriptedAutomaticCompletion = nil
-      scriptedEntries = []
-      scriptedDirectoryURL = nil
-      scriptedEntryIndex = 0
-      executionTask = nil
+      await performScriptedDirectoryAutomatically(directoryURL: directoryURL, timeout: timeout)
     }
+  }
+
+  private func performScriptedDirectoryAutomatically(
+    directoryURL: URL,
+    timeout: TimeInterval
+  ) async {
+    let report: ScriptCollectionExecutionReport
+    do {
+      report = try await collectionRunner.execute(
+        directoryURL: directoryURL,
+        timeout: timeout,
+        itemStarted: collectionItemStarted,
+        progressHandler: collectionProgressReceived,
+        itemCompleted: collectionItemCompleted
+      )
+    } catch {
+      showLocalError(error.localizedDescription)
+      scriptedAutomaticCompletion?(error.localizedDescription)
+      scriptedAutomaticCompletion = nil
+      executionTask = nil
+      return
+    }
+    isRunning = false
+    status = Task.isCancelled ? .cancelled : (report.succeeded ? .completed : .failed)
+    scriptCollectionReport = report
+    result = ScriptExecutionResult(
+      requestID: UUID(),
+      status: .completed,
+      sourceResultDescription: report.text,
+      rawResultDescription: report.text,
+      errorNumber: nil,
+      errorMessage: nil,
+      errorBriefMessage: nil,
+      errorRange: nil,
+      executionDuration: report.completedAt.timeIntervalSince(report.startedAt),
+      startedAt: report.startedAt,
+      completedAt: report.completedAt
+    )
+    scriptedAutomaticCompletion?(report.text)
+    scriptedAutomaticCompletion = nil
+    scriptedEntries = []
+    scriptedDirectoryURL = nil
+    scriptedEntryIndex = 0
+    executionTask = nil
+  }
+
+  private func collectionItemStarted(_ item: ScriptCollectionItem) {
+    descriptor = item.descriptor
+    executedScriptPaths.insert(Self.scriptIdentity(for: item.url))
+  }
+
+  private func collectionProgressReceived(
+    _ item: ScriptCollectionItem,
+    _ snapshot: ScriptProgressSnapshot
+  ) {
+    scriptProgress = snapshot
+  }
+
+  private func collectionItemCompleted(
+    _ item: ScriptCollectionItem,
+    _ executionResult: ScriptExecutionResult
+  ) async {
+    await recordExecution(descriptor: item.descriptor, result: executionResult)
   }
 
   private func runCurrentScriptedInteractiveEntry() {
@@ -928,37 +953,12 @@ final class ScriptRunnerModel {
   }
 
   private static func scriptEntries(in folderURL: URL) -> [ScriptFolderEntry] {
-    let resourceKeys: [URLResourceKey] = [.isDirectoryKey, .isPackageKey]
-    guard let enumerator = FileManager.default.enumerator(
-      at: folderURL,
-      includingPropertiesForKeys: resourceKeys,
-      options: [.skipsHiddenFiles]
-    ) else {
-      return []
-    }
-
-    var entries: [ScriptFolderEntry] = []
-    while let url = enumerator.nextObject() as? URL {
-      let fileExtension = url.pathExtension.lowercased()
-      if fileExtension == "scptd" || fileExtension == "app" {
-        enumerator.skipDescendants()
-      }
-      guard isScriptURL(url) else { continue }
-
-      let folderComponents = folderURL.standardizedFileURL.pathComponents
-      let scriptComponents = url.standardizedFileURL.pathComponents
-      let relativePath = scriptComponents.dropFirst(folderComponents.count).joined(separator: "/")
-      entries.append(
-        ScriptFolderEntry(
-          url: url,
-          relativePath: relativePath,
-          descriptor: ScriptDescriptor(url: url)
-        )
+    ScriptCollectionDiscovery().scripts(in: folderURL).map { item in
+      ScriptFolderEntry(
+        url: item.url,
+        relativePath: item.relativePath,
+        descriptor: item.descriptor
       )
-    }
-
-    return entries.sorted {
-      $0.relativePath.localizedStandardCompare($1.relativePath) == .orderedAscending
     }
   }
 
