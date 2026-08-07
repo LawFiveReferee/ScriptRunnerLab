@@ -74,6 +74,8 @@ Call `scriptRunnerService.cancel()` to terminate the current isolated helper and
 
 Use `ScriptCapability.detect(in:)` to build host-neutral compatibility tags for source scripts, compiled scripts, bundles, and applets. The Codable results preserve named framework and script-library details and can be stored with a host's Favorites metadata.
 
+`FavoriteScript(descriptor:)` creates a security-scoped bookmark and stores the analyzed capabilities. Hosts can encode the record directly and call `resolvedURL()` on launch. If bookmark resolution reports stale data, ask the user to reselect the script and replace the record with `FavoriteScript(id:replacing:)`.
+
 ## Collections
 
 Use `executeAutomatically` for recursive sorted execution. Use `executeInteractively` when the host wants to present each result and return `.runAgain`, `.runNext`, or `.quit` from its own UI. Both APIs use one helper process per script and write every result to the configured log.

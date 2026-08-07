@@ -3,20 +3,28 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 28
+- Build: 29
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 28
+### Build 29
+
+- Moved the reusable security-scoped FavoriteScript record into ScriptRunnerKit.
+- Preserved the existing JSON schema for IDs, bookmarks, paths, script types, and capability tags.
+- Added a convenience initializer that creates the bookmark and analyzes capabilities automatically.
+- ScriptRunnerLab now owns only Favorites persistence and presentation while the package resolves bookmarked URLs.
+- Added stored-JSON compatibility and real bookmark creation/resolution regression tests.
+
+## Build history
+
+### Version 1.0, build 28
 
 - Moved script capability analysis and compatibility-tag models into ScriptRunnerKit.
 - Shared analysis detects application automation, named frameworks, named script libraries, scripting additions, UI, built-in progress, path to me, and bundled resources.
 - ScriptRunnerLab Favorites now consume the package-owned analyzer without changing stored capability metadata.
 - Added source-script, packaged script-bundle, and existing-Favorites JSON compatibility tests.
-
-## Build history
 
 ### Version 1.0, build 27
 

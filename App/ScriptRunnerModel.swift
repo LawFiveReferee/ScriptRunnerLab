@@ -866,10 +866,7 @@ final class ScriptRunnerModel {
   }
 
   private func favorite(for descriptor: ScriptDescriptor) throws -> FavoriteScript {
-    try FavoriteScript(
-      descriptor: descriptor,
-      capabilities: ScriptCapability.detect(in: descriptor)
-    )
+    try FavoriteScript(descriptor: descriptor)
   }
 
   private func saveFavorites() {

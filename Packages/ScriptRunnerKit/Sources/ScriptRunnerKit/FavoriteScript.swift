@@ -1,16 +1,22 @@
 import Foundation
-import ScriptRunnerKit
 
-struct FavoriteScript: Codable, Identifiable, Sendable {
-  var id: UUID
-  var bookmark: String
-  var displayName: String
-  var lastKnownPath: String
-  var fileExtension: String
-  var scriptType: ScriptType
-  var capabilities: [ScriptCapability]
+public struct FavoriteScript: Codable, Identifiable, Sendable {
+  public var id: UUID
+  public var bookmark: String
+  public var displayName: String
+  public var lastKnownPath: String
+  public var fileExtension: String
+  public var scriptType: ScriptType
+  public var capabilities: [ScriptCapability]
 
-  init(descriptor: ScriptDescriptor, capabilities: [ScriptCapability]) throws {
+  public init(descriptor: ScriptDescriptor) throws {
+    try self.init(
+      descriptor: descriptor,
+      capabilities: ScriptCapability.detect(in: descriptor)
+    )
+  }
+
+  public init(descriptor: ScriptDescriptor, capabilities: [ScriptCapability]) throws {
     let bookmarkData = try descriptor.url.bookmarkData(
       options: [.withSecurityScope],
       includingResourceValuesForKeys: nil,
@@ -25,12 +31,12 @@ struct FavoriteScript: Codable, Identifiable, Sendable {
     self.capabilities = capabilities
   }
 
-  init(id: UUID, replacing favorite: FavoriteScript) {
+  public init(id: UUID, replacing favorite: FavoriteScript) {
     self = favorite
     self.id = id
   }
 
-  func resolvedURL() throws -> (url: URL, isStale: Bool) {
+  public func resolvedURL() throws -> (url: URL, isStale: Bool) {
     guard let bookmarkData = Data(base64Encoded: bookmark) else {
       throw CocoaError(.fileReadCorruptFile)
     }
