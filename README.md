@@ -17,6 +17,8 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 - Displays results as AE Print or AppleScript source
 - Opens scripts in the user's default editor
 - Keeps persistent favorite scripts with source-derived compatibility coverage tags
+- Runs the unattended compatibility fixtures sequentially and validates their expected outcomes
+- Lists interactive, permission-sensitive, and optional third-party tests separately with reasons
 - Provides Finder and editor actions for the selected script
 
 ## Run
@@ -27,7 +29,7 @@ The app is intentionally not sandboxed. macOS privacy controls still apply, so s
 
 ## Compatibility scripts
 
-`CompatibilityTests` contains ordered AppleScript fixtures for unattended core checks, cancellation and timeout, Automation and Accessibility permissions, Standard Additions, AppleScriptObjC, third-party libraries, bundled resources, persistent properties, handler behavior, and applet lifecycle support. Compiled `.scpt`, bundled `.scptd`, and applet `.app` variants are included and distributed inside the app as its default Scripts folder.
+`CompatibilityTests` contains ordered AppleScript fixtures for unattended core checks, cancellation and timeout, Automation and Accessibility permissions, Standard Additions, AppleScriptObjC, third-party libraries, bundled resources, persistent properties, handler behavior, and applet lifecycle support. Compiled `.scpt`, bundled `.scptd`, and applet `.app` variants are included and distributed inside the app as its default Scripts folder. The app's automatic suite runs safe, deterministic tests one at a time and checks expected successes and expected errors. Interactive, permission-sensitive, intentionally hanging, and optional third-party tests remain visible as manual or optional tests with an explanation.
 
 ## Execution log
 
@@ -41,7 +43,7 @@ OSAKit does not publicly expose AppleScript's four built-in progress values to h
 
 ## Next milestone
 
-Automate the unattended compatibility fixtures while retaining manual tests for permissions and interactive UI.
+Expand result assertions beyond success and error classification, then add controlled opt-in runs for interactive tests.
 
 ## Scope
 

@@ -19,6 +19,9 @@ final class ScriptRunnerModel {
   var executedScriptPaths: Set<String> = []
   var executionLogURL: URL
   var scriptProgress: ScriptProgressSnapshot?
+  var compatibilityResults: [String: CompatibilityTestResult] = [:]
+  var isRunningCompatibilitySuite = false
+  var currentCompatibilityTestName: String?
 
   private static let favoritesKey = "favoriteScripts"
   private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
@@ -67,6 +70,34 @@ final class ScriptRunnerModel {
 
   var isSelectedScriptFavorite: Bool {
     selectedFavoriteID != nil
+  }
+
+  var compatibilityTests: [CompatibilityTestDefinition] {
+    CompatibilityTestDefinition.all
+  }
+
+  var automaticCompatibilityTests: [CompatibilityTestDefinition] {
+    CompatibilityTestDefinition.automaticTests
+  }
+
+  var deferredCompatibilityTests: [CompatibilityTestDefinition] {
+    CompatibilityTestDefinition.deferredTests
+  }
+
+  var completedCompatibilityTestCount: Int {
+    compatibilityResults.values.filter { [.passed, .failed, .stopped].contains($0.state) }.count
+  }
+
+  var passedCompatibilityTestCount: Int {
+    compatibilityResults.values.filter { $0.state == .passed }.count
+  }
+
+  var failedCompatibilityTestCount: Int {
+    compatibilityResults.values.filter { $0.state == .failed }.count
+  }
+
+  var hasCompatibilityResults: Bool {
+    completedCompatibilityTestCount > 0
   }
 
   func outputText(for mode: ResultDisplayMode) -> String {
@@ -303,6 +334,122 @@ final class ScriptRunnerModel {
     }
   }
 
+  func runAutomaticCompatibilitySuite() {
+    guard !isRunning, let compatibilityTestsURL = Self.bundledCompatibilityTestsURL else {
+      if Self.bundledCompatibilityTestsURL == nil {
+        showLocalError("The bundled CompatibilityTests folder could not be found.")
+      }
+      return
+    }
+
+    compatibilityResults = Dictionary(
+      uniqueKeysWithValues: automaticCompatibilityTests.map { ($0.id, .pending) }
+    )
+    isRunning = true
+    isRunningCompatibilitySuite = true
+    currentCompatibilityTestName = nil
+    status = .running
+    result = nil
+    scriptProgress = nil
+
+    executionTask = Task { [weak self] in
+      guard let self else { return }
+      var wasStopped = false
+
+      for test in automaticCompatibilityTests {
+        if Task.isCancelled {
+          wasStopped = true
+          break
+        }
+
+        currentCompatibilityTestName = test.displayName
+        compatibilityResults[test.id] = .running
+        let scriptURL = compatibilityTestsURL.appending(path: test.relativePath)
+        let descriptor = ScriptDescriptor(url: scriptURL)
+        let startedAt = Date()
+        executedScriptPaths.insert(Self.scriptIdentity(for: scriptURL))
+
+        guard FileManager.default.fileExists(atPath: scriptURL.path) else {
+          compatibilityResults[test.id] = CompatibilityTestResult(
+            state: .failed,
+            message: "The bundled test file is missing."
+          )
+          continue
+        }
+
+        let request: ScriptExecutionRequest
+        do {
+          request = try ScriptExecutionRequest(scriptURL: scriptURL)
+        } catch {
+          compatibilityResults[test.id] = CompatibilityTestResult(
+            state: .failed,
+            message: "The test request could not be prepared. \(error.localizedDescription)"
+          )
+          continue
+        }
+
+        let executionResult: ScriptExecutionResult
+        do {
+          executionResult = try await helperRunner.execute(
+            request: request,
+            timeout: test.timeout
+          ) { [weak self] snapshot in
+            self?.scriptProgress = snapshot
+          }
+        } catch let error as HelperProcessError {
+          if case .cancelled = error, Task.isCancelled {
+            compatibilityResults[test.id] = CompatibilityTestResult(
+              state: .stopped,
+              message: "The suite was stopped."
+            )
+            wasStopped = true
+            break
+          }
+          executionResult = ScriptExecutionResult.failure(
+            requestID: request.requestID,
+            status: Self.executionStatus(for: error),
+            message: error.localizedDescription,
+            startedAt: startedAt
+          )
+        } catch {
+          executionResult = ScriptExecutionResult.failure(
+            requestID: request.requestID,
+            message: error.localizedDescription,
+            startedAt: startedAt
+          )
+        }
+
+        let passed = test.expectedOutcome?.matches(executionResult) == true
+        compatibilityResults[test.id] = CompatibilityTestResult(
+          state: passed ? .passed : .failed,
+          observedStatus: executionResult.status,
+          errorNumber: executionResult.errorNumber,
+          message: compatibilityMessage(
+            for: executionResult,
+            expected: test.expectedOutcome,
+            passed: passed
+          ),
+          duration: executionResult.executionDuration
+        )
+        await recordExecution(descriptor: descriptor, result: executionResult)
+        scriptProgress = nil
+      }
+
+      currentCompatibilityTestName = nil
+      scriptProgress = nil
+      isRunningCompatibilitySuite = false
+      isRunning = false
+      if wasStopped {
+        status = .cancelled
+      } else if failedCompatibilityTestCount > 0 {
+        status = .failed
+      } else {
+        status = .completed
+      }
+      executionTask = nil
+    }
+  }
+
   func cancel() {
     guard isRunning else { return }
     executionTask?.cancel()
@@ -338,6 +485,11 @@ final class ScriptRunnerModel {
     NSPasteboard.general.setString(diagnosticsText, forType: .string)
   }
 
+  func copyCompatibilitySummary() {
+    NSPasteboard.general.clearContents()
+    NSPasteboard.general.setString(compatibilitySummaryText, forType: .string)
+  }
+
   func clearResult() {
     result = nil
     status = .ready
@@ -355,6 +507,44 @@ final class ScriptRunnerModel {
 
   private var executionEngineName: String {
     descriptor?.scriptType == .appleScriptApplet ? "NSWorkspace applet launch" : "OSAKit"
+  }
+
+  private var compatibilitySummaryText: String {
+    let bundle = Bundle.main
+    let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
+    let build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "Unknown"
+    var lines = [
+      "ScriptRunnerLab Compatibility Suite",
+      "Version: \(version) (\(build))",
+      "Generated: \(Date().formatted(.iso8601))",
+      "Automatic tests: \(automaticCompatibilityTests.count)",
+      "Passed: \(passedCompatibilityTestCount)",
+      "Failed: \(failedCompatibilityTestCount)",
+      ""
+    ]
+
+    for test in automaticCompatibilityTests {
+      let testResult = compatibilityResults[test.id]
+      let state = testResult?.state.displayName.uppercased() ?? "NOT RUN"
+      var detail = "[\(state)] \(test.relativePath)"
+      if let observedStatus = testResult?.observedStatus {
+        detail += " — \(observedStatus.displayName)"
+      }
+      if let errorNumber = testResult?.errorNumber {
+        detail += " (\(errorNumber))"
+      }
+      if let message = testResult?.message, !message.isEmpty {
+        detail += " — \(message)"
+      }
+      lines.append(detail)
+    }
+
+    lines.append("")
+    lines.append("Manual and optional tests not run automatically:")
+    for test in deferredCompatibilityTests {
+      lines.append("[\(test.disposition.displayName.uppercased())] \(test.relativePath) — \(test.disposition.reason ?? "")")
+    }
+    return lines.joined(separator: "\n")
   }
 
   private var defaultEditorURL: URL? {
@@ -392,6 +582,36 @@ final class ScriptRunnerModel {
     )
     self.status = status
     isRunning = false
+  }
+
+  private static func executionStatus(for error: HelperProcessError) -> ScriptExecutionStatus {
+    switch error {
+    case .cancelled: .cancelled
+    case .timedOut: .timedOut
+    default: .failed
+    }
+  }
+
+  private func compatibilityMessage(
+    for result: ScriptExecutionResult,
+    expected: CompatibilityExpectedOutcome?,
+    passed: Bool
+  ) -> String? {
+    if passed {
+      if result.status == .completed {
+        return result.sourceResultDescription ?? "Completed as expected."
+      }
+      return "Observed the expected \(result.status.displayName)."
+    }
+
+    let expectedDescription = expected?.displayName ?? "Unknown"
+    let observedDescription: String
+    if let errorNumber = result.errorNumber {
+      observedDescription = "\(result.status.displayName) (\(errorNumber))"
+    } else {
+      observedDescription = result.status.displayName
+    }
+    return "Expected \(expectedDescription); observed \(observedDescription)."
   }
 
   private func addSelectedScriptToFavorites() {

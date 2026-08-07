@@ -9,6 +9,8 @@ struct ContentView: View {
   @State private var importerPurpose = ImporterPurpose.script
   @State private var isDropTargeted = false
   @State private var progressPanel = ScriptProgressPanelController()
+  @State private var automaticTestsExpanded = true
+  @State private var deferredTestsExpanded = false
   @AppStorage("resultDisplayMode") private var resultDisplayMode = ResultDisplayMode.aePrint
   @AppStorage("executionTimeout") private var executionTimeout = ExecutionTimeout.thirtySeconds
 
@@ -19,6 +21,7 @@ struct ContentView: View {
           header
           dropZone
           favoritesCard
+          compatibilitySuiteCard
           scriptCard
           executionCard
           diagnosticsCard
@@ -285,6 +288,90 @@ struct ContentView: View {
     }
   }
 
+  private var compatibilitySuiteCard: some View {
+    GroupBox("Compatibility Suite") {
+      VStack(alignment: .leading, spacing: 14) {
+        HStack {
+          Button(
+            runner.isRunningCompatibilitySuite ? "Stop Suite" : "Run Automatic Tests",
+            systemImage: runner.isRunningCompatibilitySuite ? "stop.fill" : "play.fill"
+          ) {
+            if runner.isRunningCompatibilitySuite {
+              runner.cancel()
+            } else {
+              runner.runAutomaticCompatibilitySuite()
+            }
+          }
+          .buttonStyle(.borderedProminent)
+          .tint(runner.isRunningCompatibilitySuite ? .red : .accentColor)
+          .disabled(runner.isRunning && !runner.isRunningCompatibilitySuite)
+
+          if runner.isRunningCompatibilitySuite {
+            ProgressView()
+              .controlSize(.small)
+          }
+
+          Text(compatibilitySummaryLabel)
+            .foregroundStyle(.secondary)
+            .monospacedDigit()
+
+          Spacer()
+
+          Button("Copy Summary", systemImage: "document.on.document") {
+            runner.copyCompatibilitySummary()
+          }
+          .disabled(!runner.hasCompatibilityResults)
+        }
+
+        if let currentTestName = runner.currentCompatibilityTestName {
+          LabeledContent("Running") {
+            Text(currentTestName)
+              .lineLimit(1)
+          }
+        }
+
+        ProgressView(
+          value: Double(runner.completedCompatibilityTestCount),
+          total: Double(runner.automaticCompatibilityTests.count)
+        )
+        .accessibilityLabel("Compatibility suite progress")
+        .accessibilityValue(compatibilitySummaryLabel)
+
+        DisclosureGroup(
+          "Automatic Tests (\(runner.automaticCompatibilityTests.count))",
+          isExpanded: $automaticTestsExpanded
+        ) {
+          VStack(spacing: 0) {
+            ForEach(Array(runner.automaticCompatibilityTests.enumerated()), id: \.element.id) { index, test in
+              automaticCompatibilityRow(test)
+              if index < runner.automaticCompatibilityTests.count - 1 {
+                Divider()
+              }
+            }
+          }
+          .padding(.top, 6)
+        }
+
+        DisclosureGroup(
+          "Manual & Optional (\(runner.deferredCompatibilityTests.count))",
+          isExpanded: $deferredTestsExpanded
+        ) {
+          VStack(spacing: 0) {
+            ForEach(Array(runner.deferredCompatibilityTests.enumerated()), id: \.element.id) { index, test in
+              deferredCompatibilityRow(test)
+              if index < runner.deferredCompatibilityTests.count - 1 {
+                Divider()
+              }
+            }
+          }
+          .padding(.top, 6)
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.top, 8)
+    }
+  }
+
   private var diagnosticsCard: some View {
     GroupBox("Diagnostics") {
       VStack(alignment: .leading, spacing: 10) {
@@ -365,6 +452,92 @@ struct ContentView: View {
     Label(runner.status.displayName, systemImage: runner.status.symbolName)
       .foregroundStyle(runner.status.color)
       .font(.headline)
+  }
+
+  private var compatibilitySummaryLabel: String {
+    if !runner.hasCompatibilityResults && !runner.isRunningCompatibilitySuite {
+      return "Not run"
+    }
+    return "\(runner.completedCompatibilityTestCount) of \(runner.automaticCompatibilityTests.count) • \(runner.passedCompatibilityTestCount) passed • \(runner.failedCompatibilityTestCount) failed"
+  }
+
+  private func automaticCompatibilityRow(_ test: CompatibilityTestDefinition) -> some View {
+    let testResult = runner.compatibilityResults[test.id] ?? .pending
+    return HStack(spacing: 10) {
+      Image(systemName: compatibilitySymbol(for: testResult.state))
+        .foregroundStyle(compatibilityColor(for: testResult.state))
+        .frame(width: 18)
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text(test.displayName)
+        Text(test.relativePath)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .lineLimit(1)
+      }
+
+      Spacer()
+
+      VStack(alignment: .trailing, spacing: 2) {
+        Text(testResult.state == .pending ? test.expectedOutcome?.displayName ?? "" : testResult.state.displayName)
+          .font(.caption)
+          .foregroundStyle(compatibilityColor(for: testResult.state))
+        if let duration = testResult.duration {
+          Text(duration.formatted(.number.precision(.fractionLength(2))) + " s")
+            .font(.caption.monospacedDigit())
+            .foregroundStyle(.secondary)
+        }
+      }
+    }
+    .padding(.vertical, 7)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(test.displayName), \(testResult.state.displayName)")
+  }
+
+  private func deferredCompatibilityRow(_ test: CompatibilityTestDefinition) -> some View {
+    HStack(alignment: .top, spacing: 10) {
+      Image(systemName: test.disposition == .automatic ? "circle" : "hand.raised")
+        .foregroundStyle(.secondary)
+        .frame(width: 18)
+
+      VStack(alignment: .leading, spacing: 2) {
+        HStack {
+          Text(test.displayName)
+          Text(test.disposition.displayName)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        Text(test.disposition.reason ?? "")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
+      Spacer()
+    }
+    .padding(.vertical, 7)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(
+      "\(test.displayName), \(test.disposition.displayName), \(test.disposition.reason ?? "")"
+    )
+  }
+
+  private func compatibilitySymbol(for state: CompatibilityTestRunState) -> String {
+    switch state {
+    case .pending: "circle"
+    case .running: "arrow.trianglehead.2.clockwise.rotate.90"
+    case .passed: "checkmark.circle.fill"
+    case .failed: "xmark.circle.fill"
+    case .stopped: "stop.circle.fill"
+    }
+  }
+
+  private func compatibilityColor(for state: CompatibilityTestRunState) -> Color {
+    switch state {
+    case .pending: .secondary
+    case .running: .accentColor
+    case .passed: .green
+    case .failed: .red
+    case .stopped: .orange
+    }
   }
 
   private func detailRow(_ title: String, _ value: String) -> some View {

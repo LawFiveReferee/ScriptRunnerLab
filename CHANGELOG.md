@@ -3,20 +3,27 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 12
-- Date: 2026-08-06
+- Build: 13
+- Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 12
+### Build 13
+
+- Added a sequential unattended compatibility suite with one isolated helper process per test.
+- Added expected success and expected-error validation with live per-test results.
+- Added Stop, progress, manual and optional test classifications, and a copyable summary.
+- Suite executions use the shared JSON-lines execution log.
+
+## Build history
+
+### Version 1.0, build 12
 
 - Added reusable ScriptRunnerKit snapshots for AppleScript's built-in progress properties.
 - Added compact attached or floating progress-window presentation with cancellation.
 - Added live helper-to-host progress transport and a built-in progress compatibility test.
 - Added Built-in Progress detection to Favorites compatibility tags.
-
-## Build history
 
 ### Version 1.0, build 11
 
