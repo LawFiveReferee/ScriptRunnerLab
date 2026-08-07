@@ -18,6 +18,7 @@ final class ScriptRunnerModel {
   var scriptsFolderEntries: [ScriptFolderEntry] = []
   var executedScriptPaths: Set<String> = []
   var executionLogURL: URL
+  var scriptProgress: ScriptProgressSnapshot?
 
   private static let favoritesKey = "favoriteScripts"
   private static let scriptsFolderBookmarkKey = "scriptsFolderBookmark"
@@ -256,12 +257,18 @@ final class ScriptRunnerModel {
     isRunning = true
     status = .running
     result = nil
+    scriptProgress = nil
     let startedAt = Date()
 
     executionTask = Task { [weak self] in
       guard let self else { return }
       do {
-        let executionResult = try await helperRunner.execute(request: request, timeout: timeout)
+        let executionResult = try await helperRunner.execute(
+          request: request,
+          timeout: timeout
+        ) { [weak self] snapshot in
+          self?.scriptProgress = snapshot
+        }
         result = executionResult
         status = executionResult.status
         isRunning = false
@@ -291,6 +298,7 @@ final class ScriptRunnerModel {
       if let result {
         await recordExecution(descriptor: descriptor, result: result)
       }
+      scriptProgress = nil
       executionTask = nil
     }
   }

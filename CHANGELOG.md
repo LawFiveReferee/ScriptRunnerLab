@@ -3,17 +3,24 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 11
+- Build: 12
 - Date: 2026-08-06
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 11
+### Build 12
 
-- Moved Scripts-folder commands above the script list and added Reveal in Finder.
+- Added reusable ScriptRunnerKit snapshots for AppleScript's built-in progress properties.
+- Added compact attached or floating progress-window presentation with cancellation.
+- Added live helper-to-host progress transport and a built-in progress compatibility test.
+- Added Built-in Progress detection to Favorites compatibility tags.
 
 ## Build history
+
+### Version 1.0, build 11
+
+- Moved Scripts-folder commands above the script list and added Reveal in Finder.
 
 ### Version 1.0, build 10
 

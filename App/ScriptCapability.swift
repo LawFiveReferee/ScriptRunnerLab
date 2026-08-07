@@ -11,6 +11,7 @@ struct ScriptCapability: Codable, Hashable, Identifiable, Sendable {
     case bundledResources
     case pathToMe
     case userInterface
+    case builtInProgress
   }
 
   var kind: Kind
@@ -36,6 +37,8 @@ struct ScriptCapability: Codable, Hashable, Identifiable, Sendable {
       "Path to Me"
     case .userInterface:
       "User Interface"
+    case .builtInProgress:
+      "Built-in Progress"
     }
   }
 
@@ -61,6 +64,12 @@ struct ScriptCapability: Codable, Hashable, Identifiable, Sendable {
     }
     if lowercaseSource.contains("display dialog") || lowercaseSource.contains("display alert") {
       capabilities.insert(ScriptCapability(kind: .userInterface))
+    }
+    if lowercaseSource.contains("progress total steps")
+      || lowercaseSource.contains("progress completed steps")
+      || lowercaseSource.contains("progress description")
+      || lowercaseSource.contains("progress additional description") {
+      capabilities.insert(ScriptCapability(kind: .builtInProgress))
     }
     if hasBundledResources(descriptor: descriptor) || lowercaseSource.contains("path to resource") {
       capabilities.insert(ScriptCapability(kind: .bundledResources))

@@ -1,11 +1,14 @@
+import ScriptRunnerKit
 import SwiftUI
 import UniformTypeIdentifiers
 
+@MainActor
 struct ContentView: View {
   @State private var runner = ScriptRunnerModel()
   @State private var isShowingImporter = false
   @State private var importerPurpose = ImporterPurpose.script
   @State private var isDropTargeted = false
+  @State private var progressPanel = ScriptProgressPanelController()
   @AppStorage("resultDisplayMode") private var resultDisplayMode = ResultDisplayMode.aePrint
   @AppStorage("executionTimeout") private var executionTimeout = ExecutionTimeout.thirtySeconds
 
@@ -51,6 +54,20 @@ struct ContentView: View {
           runner.receiveSelection(result)
         case .scriptsFolder:
           runner.receiveFolderSelection(result)
+        }
+      }
+      .onChange(of: runner.scriptProgress) { _, progress in
+        if let progress {
+          progressPanel.present(
+            progress,
+            mode: .floating,
+            onCancel: runner.cancel
+          )
+        }
+      }
+      .onChange(of: runner.isRunning) { _, isRunning in
+        if !isRunning {
+          progressPanel.dismiss()
         }
       }
     }

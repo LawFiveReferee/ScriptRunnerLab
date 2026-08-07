@@ -4,7 +4,10 @@ import OSAKit
 public struct OSAKitRunner {
   public init() {}
 
-  public func execute(request: ScriptExecutionRequest) -> ScriptExecutionResult {
+  public func execute(
+    request: ScriptExecutionRequest,
+    progressHandler: ((ScriptProgressSnapshot) -> Void)? = nil
+  ) -> ScriptExecutionResult {
     let startedAt = Date()
 
     do {
@@ -15,7 +18,12 @@ public struct OSAKitRunner {
           url.stopAccessingSecurityScopedResource()
         }
       }
-      return execute(url: url, requestID: request.requestID, startedAt: startedAt)
+      return execute(
+        url: url,
+        requestID: request.requestID,
+        startedAt: startedAt,
+        progressHandler: progressHandler
+      )
     } catch {
       return .failure(
         requestID: request.requestID,
@@ -25,7 +33,12 @@ public struct OSAKitRunner {
     }
   }
 
-  public func execute(url: URL, requestID: UUID = UUID(), startedAt: Date = Date()) -> ScriptExecutionResult {
+  public func execute(
+    url: URL,
+    requestID: UUID = UUID(),
+    startedAt: Date = Date(),
+    progressHandler: ((ScriptProgressSnapshot) -> Void)? = nil
+  ) -> ScriptExecutionResult {
     var loadError: NSDictionary?
 
     guard let script = OSAScript(contentsOf: url, error: &loadError) else {
@@ -50,8 +63,20 @@ public struct OSAKitRunner {
       }
     }
 
+    let preparedProgress = progressHandler.flatMap {
+      AppleScriptProgressBridge.prepare(
+        script: script,
+        originalURL: url,
+        requestID: requestID,
+        handler: $0
+      )
+    }
+    let executionScript = preparedProgress?.script ?? script
+    preparedProgress?.bridge.start()
+    defer { preparedProgress?.bridge.stop() }
+
     var executionError: NSDictionary?
-    let descriptor = script.executeAndReturnError(&executionError)
+    let descriptor = executionScript.executeAndReturnError(&executionError)
     let completedAt = Date()
 
     if let executionError {
@@ -67,7 +92,7 @@ public struct OSAKitRunner {
     return ScriptExecutionResult(
       requestID: requestID,
       status: .completed,
-      sourceResultDescription: descriptor.flatMap { script.richText(from: $0)?.string },
+      sourceResultDescription: descriptor.flatMap { executionScript.richText(from: $0)?.string },
       rawResultDescription: descriptor?.description,
       errorNumber: nil,
       errorMessage: nil,

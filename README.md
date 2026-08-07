@@ -7,6 +7,7 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 - Loads original `.applescript`, `.scpt`, and `.scptd` files with OSAKit
 - Launches AppleScript `.app` applets with NSWorkspace and supervises their lifecycle through the helper
 - Writes a versioned JSON-lines execution log using reusable ScriptRunnerKit models and writer
+- Displays AppleScript's built-in progress values in a compact, cancellable progress window
 - Preserves the original file URL and script-bundle context
 - Runs each request in a separately signed, agent-style Cocoa helper
 - Uses one helper process per request for crash and state isolation
@@ -32,9 +33,15 @@ The app is intentionally not sandboxed. macOS privacy controls still apply, so s
 
 Every execution attempt is appended to `~/Library/Application Support/ScriptRunnerLab/ScriptExecutionLog.jsonl`. Each line is an independent `ScriptExecutionLogEntry` JSON object containing schema version, host, script, environment, engine, timing, result, and structured error data. Other applications can use `ScriptExecutionLogEntry` and `ScriptExecutionLogWriter` from ScriptRunnerKit with a host-selected log URL.
 
+## Progress presentation
+
+ScriptRunnerKit publishes `ScriptProgressSnapshot` values and provides `ScriptProgressPanelController`. Hosts may present its small progress panel as an attached child window or as an independent floating window; ScriptRunnerLab uses the floating mode intended for UpDock-style presentation.
+
+OSAKit does not publicly expose AppleScript's four built-in progress values to host applications. For scripts whose readable source contains line-oriented `set progress … to …` statements, ScriptRunnerKit compiles an instrumented execution context with the original URL retained. Scripts without those statements continue through the unchanged original-file execution path. Run-only scripts and progress setters embedded inside another statement cannot currently use the custom panel.
+
 ## Next milestone
 
-Add AppleScript applet execution and automate the unattended compatibility fixtures while retaining manual tests for permissions and interactive UI.
+Automate the unattended compatibility fixtures while retaining manual tests for permissions and interactive UI.
 
 ## Scope
 

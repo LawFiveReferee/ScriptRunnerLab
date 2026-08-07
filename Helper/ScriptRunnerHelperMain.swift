@@ -33,13 +33,14 @@ private final class ScriptRunnerHelperDelegate: NSObject, NSApplicationDelegate 
 
   private func executeRequest() {
     let arguments = CommandLine.arguments
-    guard arguments.count == 3 else {
+    guard arguments.count == 4 else {
       NSApplication.shared.terminate(nil)
       return
     }
 
     let requestURL = URL(fileURLWithPath: arguments[1])
     let resultURL = URL(fileURLWithPath: arguments[2])
+    let progressURL = URL(fileURLWithPath: arguments[3])
     self.resultURL = resultURL
 
     do {
@@ -52,7 +53,9 @@ private final class ScriptRunnerHelperDelegate: NSObject, NSApplicationDelegate 
         return
       }
 
-      let result = OSAKitRunner().execute(request: request)
+      let result = OSAKitRunner().execute(request: request) { snapshot in
+        try? self.write(snapshot, to: progressURL)
+      }
       try write(result, to: resultURL)
     } catch {
       let result = ScriptExecutionResult.failure(
@@ -187,5 +190,11 @@ private final class ScriptRunnerHelperDelegate: NSObject, NSApplicationDelegate 
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     try encoder.encode(result).write(to: url, options: .atomic)
+  }
+
+  private func write(_ progress: ScriptProgressSnapshot, to url: URL) throws {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.sortedKeys]
+    try encoder.encode(progress).write(to: url, options: .atomic)
   }
 }

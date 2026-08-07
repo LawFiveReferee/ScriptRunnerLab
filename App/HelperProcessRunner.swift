@@ -8,12 +8,14 @@ final class HelperProcessRunner {
 
   func execute(
     request: ScriptExecutionRequest,
-    timeout: TimeInterval
+    timeout: TimeInterval,
+    progressHandler: @escaping (ScriptProgressSnapshot) -> Void
   ) async throws -> ScriptExecutionResult {
     let workingDirectory = FileManager.default.temporaryDirectory
       .appending(path: "ScriptRunnerLab/\(request.requestID.uuidString)", directoryHint: .isDirectory)
     let requestURL = workingDirectory.appending(path: "request.json")
     let resultURL = workingDirectory.appending(path: "result.json")
+    let progressURL = workingDirectory.appending(path: "progress.json")
     try FileManager.default.createDirectory(at: workingDirectory, withIntermediateDirectories: true)
     defer {
       try? FileManager.default.removeItem(at: workingDirectory)
@@ -27,15 +29,20 @@ final class HelperProcessRunner {
     let helperURL = try helperExecutableURL()
     let process = Process()
     process.executableURL = helperURL
-    process.arguments = [requestURL.path, resultURL.path]
+    process.arguments = [requestURL.path, resultURL.path, progressURL.path]
     process.standardOutput = FileHandle.nullDevice
     process.standardError = FileHandle.nullDevice
     self.process = process
     try process.run()
 
     let deadline = ContinuousClock.now.advanced(by: .seconds(timeout))
+    var lastProgressUpdate: Date?
     do {
       while process.isRunning {
+        if let snapshot = readProgress(at: progressURL), snapshot.updatedAt != lastProgressUpdate {
+          lastProgressUpdate = snapshot.updatedAt
+          progressHandler(snapshot)
+        }
         try Task.checkCancellation()
         if ContinuousClock.now >= deadline {
           await stop(process)
@@ -68,6 +75,11 @@ final class HelperProcessRunner {
       throw HelperProcessError.helperMissing
     }
     return url
+  }
+
+  private func readProgress(at url: URL) -> ScriptProgressSnapshot? {
+    guard let data = try? Data(contentsOf: url) else { return nil }
+    return try? JSONDecoder().decode(ScriptProgressSnapshot.self, from: data)
   }
 
   private func stop(_ process: Process) async {

@@ -21,6 +21,7 @@ These fixtures exercise the current OSAKit/helper path, NSWorkspace applet launc
 - `UserCancellation.applescript`: error number `-128` when Cancel is selected.
 - `InfiniteLoop.applescript`: status **Timed Out**; the main app must stay responsive.
 - `DelayForCancellation.applescript`: status **Cancelled**; the main app must stay responsive.
+- `BuiltInProgress.applescript`: displays a compact progress window that advances from 0 to 10; its Cancel button stops execution.
 - `PersistentProperty.applescript`: currently returns `1` on each isolated execution because every run uses a fresh helper process.
 - `BasicReturnApplet.app`: status **Completed** after its `run` handler exits.
 - `AppletLifecycle.app`: remains open for `idle`; use Cancel or Timeout and confirm no applet process remains.
