@@ -1,9 +1,8 @@
 import Foundation
 import OSAKit
-import ScriptRunnerKit
 
-struct ScriptCapability: Codable, Hashable, Identifiable, Sendable {
-  enum Kind: String, Codable, Sendable {
+public struct ScriptCapability: Codable, Hashable, Identifiable, Sendable {
+  public enum Kind: String, Codable, Sendable {
     case applicationAutomation
     case framework
     case scriptLibrary
@@ -14,14 +13,14 @@ struct ScriptCapability: Codable, Hashable, Identifiable, Sendable {
     case builtInProgress
   }
 
-  var kind: Kind
-  var detail: String?
+  public var kind: Kind
+  public var detail: String?
 
-  var id: String {
+  public var id: String {
     kind.rawValue + (detail.map { ":\($0)" } ?? "")
   }
 
-  var displayName: String {
+  public var displayName: String {
     switch kind {
     case .applicationAutomation:
       "Application Automation"
@@ -42,7 +41,12 @@ struct ScriptCapability: Codable, Hashable, Identifiable, Sendable {
     }
   }
 
-  static func detect(in descriptor: ScriptDescriptor) -> [ScriptCapability] {
+  public init(kind: Kind, detail: String? = nil) {
+    self.kind = kind
+    self.detail = detail
+  }
+
+  public static func detect(in descriptor: ScriptDescriptor) -> [ScriptCapability] {
     let source = sourceText(for: descriptor)
     let lowercaseSource = source.lowercased()
     var capabilities = Set<ScriptCapability>()
@@ -75,7 +79,9 @@ struct ScriptCapability: Codable, Hashable, Identifiable, Sendable {
       capabilities.insert(ScriptCapability(kind: .bundledResources))
     }
 
-    return capabilities.sorted { $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending }
+    return capabilities.sorted {
+      $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending
+    }
   }
 
   private static func sourceText(for descriptor: ScriptDescriptor) -> String {
@@ -86,7 +92,10 @@ struct ScriptCapability: Codable, Hashable, Identifiable, Sendable {
 
     let scriptURL: URL
     if descriptor.scriptType == .appleScriptApplet {
-      scriptURL = descriptor.url.appending(path: "Contents/Resources/Scripts/main.scpt", directoryHint: .notDirectory)
+      scriptURL = descriptor.url.appending(
+        path: "Contents/Resources/Scripts/main.scpt",
+        directoryHint: .notDirectory
+      )
     } else {
       scriptURL = descriptor.url
     }

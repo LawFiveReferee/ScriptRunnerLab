@@ -21,6 +21,7 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 - Uses ScriptRunnerKit's shared baseline manifest and compatibility-suite assertion runner
 - Copies compatibility summaries as shared human-readable text or portable JSON
 - Uses ScriptRunnerKit's shared Cocoa helper runtime behind a minimal embedded launcher
+- Uses ScriptRunnerKit's reusable capability analyzer for Favorites compatibility tags
 - Reports structured AppleScript errors, source ranges, raw results, duration, UTI, and architecture
 - Displays results as AE Print or AppleScript source
 - Opens scripts in the user's default editor
@@ -66,7 +67,7 @@ OSAKit does not publicly expose AppleScript's four built-in progress values to h
 
 ## Next milestone
 
-Move reusable script capability analysis and compatibility tags into ScriptRunnerKit.
+Move the reusable security-scoped Favorite script record into ScriptRunnerKit while preserving stored Favorites.
 
 ## Scope
 

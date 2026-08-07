@@ -72,6 +72,8 @@ let result = await scriptRunnerService.execute(
 
 Call `scriptRunnerService.cancel()` to terminate the current isolated helper and its applet, if any.
 
+Use `ScriptCapability.detect(in:)` to build host-neutral compatibility tags for source scripts, compiled scripts, bundles, and applets. The Codable results preserve named framework and script-library details and can be stored with a host's Favorites metadata.
+
 ## Collections
 
 Use `executeAutomatically` for recursive sorted execution. Use `executeInteractively` when the host wants to present each result and return `.runAgain`, `.runNext`, or `.quit` from its own UI. Both APIs use one helper process per script and write every result to the configured log.

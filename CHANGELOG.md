@@ -3,21 +3,28 @@
 ## Current development build
 
 - Version: 1.0
-- Build: 27
+- Build: 28
 - Date: 2026-08-07
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
 - Baseline release: Not yet designated
 
-### Build 27
+### Build 28
+
+- Moved script capability analysis and compatibility-tag models into ScriptRunnerKit.
+- Shared analysis detects application automation, named frameworks, named script libraries, scripting additions, UI, built-in progress, path to me, and bundled resources.
+- ScriptRunnerLab Favorites now consume the package-owned analyzer without changing stored capability metadata.
+- Added source-script, packaged script-bundle, and existing-Favorites JSON compatibility tests.
+
+## Build history
+
+### Version 1.0, build 27
 
 - Moved the Cocoa helper lifecycle and request-processing runtime into ScriptRunnerKit.
 - Shared runtime now owns request decoding, OSAKit execution, progress output, applet launch supervision, termination handling, and result writing.
 - Reduced ScriptRunnerLabHelper to a minimal launcher that calls ScriptRunnerHelperRuntime.
 - Added a typed, validated helper invocation model and argument-parser regression coverage.
 - Verified both ordinary AppleScript execution and short-lived applet execution through the package-owned helper runtime.
-
-## Build history
 
 ### Version 1.0, build 26
 
