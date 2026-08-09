@@ -2,12 +2,26 @@
 
 ## Current development build
 
-- Version: 1.0
-- Build: 32
-- Date: 2026-08-07
+- Version: 1.1
+- Build: 33
+- Date: 2026-08-09
 - Repository folder: `/Users/edstockly/Library/Bitrig/Users/3779/Projects/72da40c7-4c80-4ecd-8c37-98a66a39f4b4`
 - Xcode project: `ScriptRunnerLab.xcodeproj`
-- Baseline release: Not yet designated
+- Baseline release: 1.0.0
+
+### Version 1.1, build 33
+
+- Added logical script identity so temporary execution files can retain a host display name and original source URL in progress and JSONL metadata.
+- Added a backward-compatible identity-aware single-execution overload; the 1.0 execution API remains unchanged.
+- Added host-configurable progress-panel titles, sizing, icon/footer content, and footer alignment while preserving the existing default appearance and cancellation behavior.
+- Added reusable failure formatting for logical name, duration, status, structured error details, and the original message.
+- Added an explicit reject-new overlap policy and structured busy result without replacing the accepted request's cancellation owner.
+- Corrected cancellation routing so a single helper receives one cancellation signal.
+- Documented minimal LSUIElement helpers, embedding and Code Sign on Copy, hardened runtime, version synchronization, temporary-source identity, progress ownership, collections, and supported script-package behavior.
+- Added regression coverage for compatibility, identity propagation, progress configuration, helper exit, failure formatting, overlap ownership, sequential collections, and package-leaf discovery.
+- Proposed ScriptRunnerKit 1.1.0 as the next additive semantic version; no tag or release has been created.
+
+## Build history
 
 ### Build 32
 
@@ -16,8 +30,6 @@
 - Lowered the reusable execution engine deployment declaration to macOS 13 for UpDock compatibility.
 - Kept the Observation-based Favorites store explicitly available on macOS 14 and later.
 - Added remote-package installation guidance for host applications.
-
-## Build history
 
 ### Version 1.0, build 31
 

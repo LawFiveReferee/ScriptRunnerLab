@@ -1,36 +1,41 @@
 # Embedding ScriptRunnerKit
 
-## Package dependency
+## Package and helper architecture
 
-Add `https://github.com/LawFiveReferee/ScriptRunnerLab.git` as a Swift package dependency and select the `ScriptRunnerKit` product. Version 1.0.0 supports the execution engine on macOS 13 and later; the observable Favorites store requires macOS 14 or later.
+Add `https://github.com/LawFiveReferee/ScriptRunnerLab.git` as a Swift package dependency and link the `ScriptRunnerKit` product to both the host and a small Cocoa helper application target. Create one `ScriptRunnerService` on the main actor and retain it for the host process. Every accepted script gets a new helper process; the helper exits when that request finishes.
 
-ScriptRunnerKit is the reusable execution layer. A host application embeds a separately signed copy of ScriptRunnerHelper and creates one `ScriptRunnerService` for the lifetime of the host process.
+The candidate API documented here is intended for ScriptRunnerKit 1.1.0. Continue pinning production hosts to 1.0.0 until 1.1.0 is reviewed and tagged.
 
-## Host target
+## Minimal embedded helper
 
-1. Add `Packages/ScriptRunnerKit` as a local Swift package dependency and link the `ScriptRunnerKit` product.
-2. Add a Cocoa application target with a minimal launcher and link that target to ScriptRunnerKit:
+The helper launcher needs only:
 
-   ```swift
-   import ScriptRunnerKit
+```swift
+import ScriptRunnerKit
 
-   @main
-   enum ScriptRunnerHelperMain {
-     @MainActor
-     static func main() {
-       ScriptRunnerHelperRuntime.run()
-     }
-   }
-   ```
-3. Set the helper's `LSUIElement` value to `true` so it runs as an agent without a Dock icon.
-4. Embed and sign the helper application in the host at `Contents/Helpers/ScriptRunnerHelper.app`.
-5. Keep the host and helper non-sandboxed for the compatibility goals of this project.
+@main
+enum ScriptRunnerHelperMain {
+  @MainActor
+  static func main() {
+    ScriptRunnerHelperRuntime.run()
+  }
+}
+```
 
-ScriptRunnerLab's target definitions in `Project.json` are the reference configuration for the package dependency, helper target, copy destination, and embedded signing.
+Its Info.plist must describe an application and set `LSUIElement` to `true`:
+
+```xml
+<key>CFBundlePackageType</key>
+<string>APPL</string>
+<key>LSUIElement</key>
+<true/>
+```
+
+Embed the helper application at `Contents/Helpers/ScriptRunnerHelper.app`. In Xcode, add the helper as a target dependency and an Embed App Extensions/Copy Files entry whose destination is Wrapper, subpath is `Contents/Helpers`, with Code Sign on Copy enabled. Enable the hardened runtime for release builds of both targets and give each target only the entitlements its behavior requires. Keep the host and helper marketing version and build number synchronized.
+
+ScriptRunnerLab's `Helper/ScriptRunnerHelperMain.swift`, `Helper/Info.plist`, `Project.json`, and Xcode project are a working reference. Before distribution, run `codesign --verify --deep --strict --verbose=2 Host.app` and inspect both targets with `codesign -d --verbose=4`.
 
 ## Service setup
-
-Create the service on the main actor and retain it. Host metadata is written into every JSON-lines execution-log entry.
 
 ```swift
 import ScriptRunnerKit
@@ -46,62 +51,104 @@ func makeScriptRunnerService() -> ScriptRunnerService {
     in: .userDomainMask
   ).first ?? FileManager.default.temporaryDirectory
   let logURL = applicationSupportURL
-    .appending(path: "UpDock", directoryHint: .isDirectory)
+    .appending(path: "ExampleHost", directoryHint: .isDirectory)
     .appending(path: "ScriptExecutionLog.jsonl")
 
   return ScriptRunnerService(
     configuration: .current(
       helperExecutableURL: helperURL,
-      workingDirectoryName: "UpDock",
+      workingDirectoryName: "ExampleHost-ScriptRunner",
       logURL: logURL,
       bundle: bundle,
-      displayNameFallback: "UpDock"
+      displayNameFallback: "Example Host"
     )
   )
 }
 ```
 
-## Single execution
+The default overlap policy is `.rejectNew`. A conflicting single request returns a `.busy` `ScriptExecutionResult`; a conflicting collection throws `ScriptRunnerServiceError.busy`. The accepted request remains the sole owner of cancellation state. Sequential collection execution is unchanged.
 
-`execute(scriptURL:timeout:progressHandler:)` accepts `.applescript`, `.scpt`, `.scptd`, and AppleScript `.app` URLs. It returns a structured result for success, compile errors, execution errors, timeout, or cancellation and records the attempt when a log URL is configured.
+## Files and logical script identity
+
+The original API remains available:
 
 ```swift
-let result = await scriptRunnerService.execute(
-  scriptURL: scriptURL,
-  timeout: 30
-) { progress in
+let result = await service.execute(scriptURL: scriptURL, timeout: 30) { progress in
   currentProgress = progress
 }
 ```
 
-Call `scriptRunnerService.cancel()` to terminate the current isolated helper and its applet, if any.
+For source stored inside a host database or settings model, write an execution copy to a temporary `.applescript` file and supply its logical identity:
 
-Use `ScriptCapability.detect(in:)` to build host-neutral compatibility tags for source scripts, compiled scripts, bundles, and applets. The Codable results preserve named framework and script-library details and can be stored with a host's Favorites metadata.
+```swift
+let executionURL = FileManager.default.temporaryDirectory
+  .appending(path: UUID().uuidString)
+  .appendingPathExtension("applescript")
+try Data(source.utf8).write(to: executionURL, options: .atomic)
+defer { try? FileManager.default.removeItem(at: executionURL) }
 
-`FavoriteScript(descriptor:)` creates a security-scoped bookmark and stores the analyzed capabilities. Hosts can encode the record directly and call `resolvedURL()` on launch. If bookmark resolution reports stale data, ask the user to reselect the script and replace the record with `FavoriteScript(id:replacing:)`.
+let identity = ScriptExecutionIdentity(
+  displayName: commandName,
+  originalURL: importedSourceURL
+)
+let result = await service.execute(
+  scriptURL: executionURL,
+  identity: identity,
+  timeout: 30
+) { progress in
+  // progress.scriptIdentity contains the same logical identity.
+}
+```
 
-For a complete collection, create `FavoriteScriptStore(defaults:storageKey:)`. The observable store loads the existing JSON representation, prevents duplicates, keeps entries sorted, and persists additions and removals. `resolveAndRefresh(id:)` resolves access and refreshes the bookmark, path, type, and capability metadata without changing the entry ID. If resolution fails, use `replace(id:with:)` after the user reselects the moved script.
+`originalURL` is optional. When supplied, the logical name and original path/type are used in JSONL metadata instead of the UUID temporary filename. The helper still executes the explicitly supplied `scriptURL`.
 
-ScriptRunnerLab demonstrates the repair presentation: catch a failed resolution, identify the affected entry, let the user choose a replacement with a file importer, validate its `ScriptDescriptor`, and pass it to `replace(id:with:)`. The host owns this prompt so it can use a sheet, alert, or independent UpDock-style window.
+Use `ScriptExecutionFailureFormatter` for a reusable detailed failure containing the logical name, elapsed time, status, structured error number and source range, and original error message.
+
+## Progress presentation
+
+A host may own progress UI and consume only `ScriptProgressSnapshot`, or use the package's compact cancellable panel. The default initializer preserves ScriptRunnerLab's existing 360 × 142 “Script Progress” panel.
+
+```swift
+import AppKit
+
+let panel = ScriptProgressPanelController(
+  configuration: ScriptProgressPanelConfiguration(
+    contentSize: NSSize(width: 380, height: 176),
+    windowTitle: { identity in identity?.displayName ?? "Script Progress" },
+    footer: ScriptProgressPanelFooter(
+      icon: NSApp.applicationIconImage,
+      text: "Example Host",
+      alignment: .trailing
+    )
+  )
+)
+
+panel.present(snapshot, mode: .floating) {
+  service.cancel()
+}
+```
+
+Use `.attached` with a parent window for app-local presentation or `.floating` for an independent frontmost utility panel. Icon, footer, title policy, sizing, and alignment are host configuration; ScriptRunnerKit supplies no host artwork or branding. Cancellation behavior is the same in either mode.
 
 ## Collections
 
-Use `executeAutomatically` for recursive sorted execution. Use `executeInteractively` when the host wants to present each result and return `.runAgain`, `.runNext`, or `.quit` from its own UI. Both APIs use one helper process per script and write every result to the configured log.
+`executeAutomatically` discovers supported items recursively and executes them in deterministic relative-path order. `executeInteractively` uses the same ordering but asks the host for `.runAgain`, `.runNext`, or `.quit` after each result. Both preserve every result in their report and use one isolated helper per accepted script. The host owns result windows, command history, AppleScript/SDEF commands, and persistence.
 
-The interactive action provider is host-neutral. UpDock can therefore display its result prompt as an independent frontmost window, while another host can use an attached sheet, without changing ScriptRunnerKit.
+Collection discovery supports:
 
-## AppleScript commands
+- `.applescript`: compiled and executed with OSAKit while retaining file context.
+- `.scpt`: the original compiled script is executed with OSAKit.
+- `.scptd`: the original script bundle is an indivisible discovery item, preserving bundled resources.
+- AppleScript `.app`: the applet is an indivisible discovery item and is launched through NSWorkspace under helper supervision.
 
-An AppleScriptable host adds its own commands to its SDEF and forwards them to the two collection methods. `App/ExecuteScriptsCommand.swift` and `App/ScriptRunnerLab.sdef` are the reference command bridge. The scripting definition remains host-owned so application names and terminology do not leak into ScriptRunnerKit.
+Directories inside `.scptd` and `.app` packages are never enumerated as separate collection scripts. Unsupported ordinary applications are ignored.
 
-## Compatibility suite
+## Favorites, capabilities, and compatibility suite
 
-The package embeds the complete baseline fixture set. Pass `CompatibilityTestResources.rootURL` to `executeCompatibilitySuite`; no separate resource-copy phase is required in the host. The default manifest supplies the same automatic tests and assertions used by ScriptRunnerLab. Start, progress, and completion callbacks allow the host to build its own live test interface; the returned report contains ordered per-test results and completion state.
+`ScriptCapability.detect(in:)`, `FavoriteScript`, and `FavoriteScriptStore` provide optional host-neutral metadata and security-scoped bookmark support. The host owns repair prompts and its storage keys.
 
-Manual and optional definitions are available through `CompatibilityTestDefinition.deferredTests`. Hosts decide how and when to present those permission-sensitive, interactive, or third-party tests.
+The package embeds the baseline compatibility fixtures. Pass `CompatibilityTestResources.rootURL` to `executeCompatibilitySuite`. Automatic tests are deterministic; manual and optional definitions remain available through `CompatibilityTestDefinition.deferredTests` for host-controlled permission, UI, timeout, cancellation, and third-party-library testing.
 
-Create a `CompatibilitySuiteSummary` from the host configuration, manifest, and accumulated results to export the same detailed report as either `text` or versioned JSON from `jsonData()`.
+## Distribution cautions
 
-## Distribution checks
-
-Before distributing a host, verify the outer app and embedded helper with `codesign --verify --deep --strict`, then test Developer ID signing, hardened runtime, notarization, quarantine, Automation permission prompts, and third-party framework architectures on a clean Mac.
+The runner cannot bypass Automation, Accessibility, Full Disk Access, quarantine, signing, library validation, or architecture restrictions. Test Developer ID signing, hardened runtime, notarization, embedded-helper signing, third-party native frameworks, and privacy prompts on a clean Mac before shipping.

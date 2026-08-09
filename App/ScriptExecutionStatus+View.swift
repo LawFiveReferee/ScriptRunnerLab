@@ -11,6 +11,7 @@ extension ScriptExecutionStatus {
     case .failed: "exclamationmark.triangle.fill"
     case .cancelled: "stop.fill"
     case .timedOut: "clock.badge.exclamationmark.fill"
+    case .busy: "hourglass"
     }
   }
 
@@ -23,6 +24,7 @@ extension ScriptExecutionStatus {
     case .failed: .red
     case .cancelled: .orange
     case .timedOut: .orange
+    case .busy: .orange
     }
   }
 }

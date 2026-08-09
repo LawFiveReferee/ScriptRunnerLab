@@ -57,8 +57,9 @@ public final class ScriptHelperProcessRunner {
     var lastProgressUpdate: Date?
     do {
       while process.isRunning {
-        if let snapshot = readProgress(at: progressURL), snapshot.updatedAt != lastProgressUpdate {
+        if var snapshot = readProgress(at: progressURL), snapshot.updatedAt != lastProgressUpdate {
           lastProgressUpdate = snapshot.updatedAt
+          snapshot.scriptIdentity = request.identity
           progressHandler(snapshot)
         }
         try Task.checkCancellation()

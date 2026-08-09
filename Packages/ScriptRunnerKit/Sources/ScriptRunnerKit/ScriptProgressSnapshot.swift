@@ -7,6 +7,7 @@ public struct ScriptProgressSnapshot: Codable, Equatable, Sendable {
   public var progressDescription: String?
   public var additionalDescription: String?
   public var updatedAt: Date
+  public var scriptIdentity: ScriptExecutionIdentity?
 
   public init(
     requestID: UUID,
@@ -14,7 +15,8 @@ public struct ScriptProgressSnapshot: Codable, Equatable, Sendable {
     completedSteps: Int64,
     progressDescription: String?,
     additionalDescription: String?,
-    updatedAt: Date = Date()
+    updatedAt: Date = Date(),
+    scriptIdentity: ScriptExecutionIdentity? = nil
   ) {
     self.requestID = requestID
     self.totalSteps = totalSteps
@@ -22,6 +24,7 @@ public struct ScriptProgressSnapshot: Codable, Equatable, Sendable {
     self.progressDescription = progressDescription
     self.additionalDescription = additionalDescription
     self.updatedAt = updatedAt
+    self.scriptIdentity = scriptIdentity
   }
 
   public var isIndeterminate: Bool {

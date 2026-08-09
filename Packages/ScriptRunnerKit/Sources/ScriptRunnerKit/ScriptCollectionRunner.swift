@@ -186,7 +186,10 @@ public final class ScriptCollectionRunner {
       let startedAt = Date()
       let request: ScriptExecutionRequest
       do {
-        request = try ScriptExecutionRequest(scriptURL: item.url)
+        request = try ScriptExecutionRequest(
+          scriptURL: item.url,
+          identity: .inferred(from: item.url)
+        )
       } catch {
         return .failure(
           requestID: UUID(),
@@ -195,7 +198,11 @@ public final class ScriptCollectionRunner {
         )
       }
       do {
-        return try await requestExecutor(request, timeout, progressHandler)
+        return try await requestExecutor(request, timeout) { snapshot in
+          var snapshot = snapshot
+          snapshot.scriptIdentity = request.identity
+          progressHandler(snapshot)
+        }
       } catch let error as ScriptHelperProcessError {
         return .failure(
           requestID: request.requestID,

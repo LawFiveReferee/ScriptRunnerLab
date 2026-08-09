@@ -4,10 +4,12 @@ public struct ScriptExecutionRequest: Codable, Sendable {
   public var requestID: UUID
   public var scriptURL: URL
   public var securityScopedBookmark: Data?
+  public var identity: ScriptExecutionIdentity?
 
-  public init(scriptURL: URL) throws {
+  public init(scriptURL: URL, identity: ScriptExecutionIdentity? = nil) throws {
     self.requestID = UUID()
     self.scriptURL = scriptURL
+    self.identity = identity
     self.securityScopedBookmark = try scriptURL.bookmarkData(
       options: [.withSecurityScope],
       includingResourceValuesForKeys: nil,
@@ -15,10 +17,16 @@ public struct ScriptExecutionRequest: Codable, Sendable {
     )
   }
 
-  public init(requestID: UUID = UUID(), scriptURL: URL, securityScopedBookmark: Data?) {
+  public init(
+    requestID: UUID = UUID(),
+    scriptURL: URL,
+    securityScopedBookmark: Data?,
+    identity: ScriptExecutionIdentity? = nil
+  ) {
     self.requestID = requestID
     self.scriptURL = scriptURL
     self.securityScopedBookmark = securityScopedBookmark
+    self.identity = identity
   }
 
   public func resolveScriptURL() throws -> URL {

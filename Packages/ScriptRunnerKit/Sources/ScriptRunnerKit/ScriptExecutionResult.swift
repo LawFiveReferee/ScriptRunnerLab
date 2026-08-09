@@ -80,11 +80,13 @@ public enum ScriptExecutionStatus: String, Codable, Equatable, Sendable {
   case failed
   case cancelled
   case timedOut
+  case busy
 
   public var displayName: String {
     switch self {
     case .compileError: "AppleScript Compile Error"
     case .timedOut: "Timed Out"
+    case .busy: "Busy"
     default: rawValue.capitalized
     }
   }

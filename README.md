@@ -18,6 +18,10 @@ A non-sandboxed macOS test host for proving broad AppleScript compatibility befo
 - Uses ScriptRunnerKit's shared recursive discovery and sequential collection runner
 - Uses ScriptRunnerKit's host-neutral interactive sequence for repeat, advance, quit, and ordered results
 - Uses ScriptRunnerService as the shared host API for execution, collections, cancellation, progress, and logging
+- Preserves host-supplied logical names and original URLs when executing temporary source files
+- Rejects overlapping service requests without replacing the accepted request's cancellation state
+- Provides host-configurable progress-panel titles, sizing, icons, footers, and alignment
+- Provides reusable named, timed, structured failure descriptions
 - Uses ScriptRunnerKit's shared baseline manifest and compatibility-suite assertion runner
 - Copies compatibility summaries as shared human-readable text or portable JSON
 - Uses ScriptRunnerKit's shared Cocoa helper runtime behind a minimal embedded launcher
@@ -54,6 +58,8 @@ ScriptRunnerKit is available directly from this repository:
 
 Link the `ScriptRunnerKit` product to the host and its Cocoa helper target. The helper remains host-owned so its bundle identifier, signing, and embedding match the destination application.
 
+The additive APIs on the current development branch are proposed for version 1.1.0. Keep released integrations pinned to 1.0.0 until that update is reviewed and tagged.
+
 ## AppleScript commands
 
 ScriptRunnerLab includes an SDEF dictionary and accepts recursive directory execution requests:
@@ -77,13 +83,13 @@ Every execution attempt is appended to `~/Library/Application Support/ScriptRunn
 
 ## Progress presentation
 
-ScriptRunnerKit publishes `ScriptProgressSnapshot` values and provides `ScriptProgressPanelController`. Hosts may present its small progress panel as an attached child window or as an independent floating window; ScriptRunnerLab uses the floating mode intended for UpDock-style presentation.
+ScriptRunnerKit publishes `ScriptProgressSnapshot` values and provides `ScriptProgressPanelController`. Hosts may present its default small panel as an attached child window or independent floating window, configure its logical-script title and optional host-neutral footer, or own progress presentation entirely.
 
 OSAKit does not publicly expose AppleScript's four built-in progress values to host applications. For scripts whose readable source contains line-oriented `set progress … to …` statements, ScriptRunnerKit compiles an instrumented execution context with the original URL retained. Scripts without those statements continue through the unchanged original-file execution path. Run-only scripts and progress setters embedded inside another statement cannot currently use the custom panel.
 
 ## Next milestone
 
-Complete the first ScriptRunnerKit and ScriptRunnerHelper integration in UpDock Pro.
+Review the additive ScriptRunnerKit 1.1.0 candidate APIs and compatibility report, then publish only after embedding-host validation.
 
 ## Scope
 
